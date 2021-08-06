@@ -1,0 +1,1 @@
+All objects share the same texture.
