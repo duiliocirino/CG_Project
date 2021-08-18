@@ -1,0 +1,30 @@
+.menu {
+    background-color: rgba(191,191,191,0.5);
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+
+    border-radius: 8px;
+    margin: auto;
+    height: 50vh;
+    width: 100vh;
+
+    text-align: center;
+}
+
+.menu_button {
+    font-family: "Comic Sans MS";
+    margin: 0 auto;
+    float: bottom;
+    height: 33%;
+    width: 33%;
+}
+
+.menu_title {
+    float: top;
+    margin: 0 auto;
+    font-family: "Comic Sans MS";
+}
+
+canvas{
+    position: absolute;
+    z-index: -1;
+}
