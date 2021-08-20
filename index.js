@@ -11,8 +11,15 @@ var lookRadius = 10.0;
 
 
 async function loadObjects(file) {
-    var objStr = await utils.get_objstr(file);
-    return new OBJ.Mesh(objStr);
+    var text = await file.text();
+    var objects = JSON.parse(text);
+    var objStr = [];
+    var meshes = [];
+    for (i = 0; i< objects.length; i++){
+        objStr[i] = await utils.get_objstr(objects[i]);
+        meshes[i] = new OBJ.Mesh(objStr[i]);
+    }
+    return meshes;
 }
 
 async function init(){
@@ -44,8 +51,8 @@ async function init(){
 
 
     //Load object
-    var objectPath = "Graphics/Models/Environment/ghost.obj"
-    var objects = await loadObjects(objectPath); //TODO modificare che riceva un file json
+    var objectFile = await fetch("Engine/blocks.json");
+    var objects = await loadObjects(objectFile);
 
     //link mesh attributes to shader attributes
     program.vertexPositionAttribute = gl.getAttribLocation(program, "in_pos");
@@ -60,7 +67,7 @@ async function init(){
     program.WVPmatrixUniform = gl.getUniformLocation(program, "pMatrix");
     program.textureUniform = gl.getUniformLocation(program, "u_texture");
 
-    OBJ.initMeshBuffers(gl, objects);
+    OBJ.initMeshBuffers(gl, objects[0]);
 
 
 
