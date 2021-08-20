@@ -79,15 +79,15 @@ async function init(){
 
 
     // selects the mesh
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects.vertexBuffer);
-    gl.vertexAttribPointer(program.vertexPositionAttribute, objects.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects.textureBuffer);
-    gl.vertexAttribPointer(program.textureCoordAttribute, objects.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].vertexBuffer);
+    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[0].vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].textureBuffer);
+    gl.vertexAttribPointer(program.textureCoordAttribute, objects[0].textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects.normalBuffer);
-    gl.vertexAttribPointer(program.vertexNormalAttribute, objects.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].normalBuffer);
+    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[0].normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects.indexBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[0].indexBuffer);
 
 
 
@@ -95,8 +95,8 @@ async function init(){
     gl.enable(gl.DEPTH_TEST);
 
 
-    gl.drawElements(gl.TRIANGLES, objects.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-    drawScene(gl, objects);
+    gl.drawElements(gl.TRIANGLES, objects[0].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    drawScene(gl, objects[0]);
 
 
 }
@@ -118,7 +118,7 @@ function drawScene(gl, object) {
 
 
     // draws the answer
-        WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(5));
+        WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
         gl.uniformMatrix4fv(program.WVPmatrixUniform, false, utils.transposeMatrix(WVPmatrix));
         gl.drawElements(gl.TRIANGLES, object.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
