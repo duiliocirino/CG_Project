@@ -1,4 +1,5 @@
 
+
 var program;
 
 //Parameters for Camera
@@ -9,6 +10,12 @@ var elevation = 0.0;
 var angle = 0.0;
 var lookRadius = 10.0;
 
+
+//Node definition
+function node(localWorldMatrix, children){
+    this.localWorldMatrix = localWorldMatrix;
+    this.children = children;
+}
 
 async function loadObjects(file) {
     var text = await file.text();
@@ -54,6 +61,8 @@ async function init(){
     var objectFile = await fetch("Engine/blocks.json");
     var objects = await loadObjects(objectFile);
 
+
+
     //link mesh attributes to shader attributes
     program.vertexPositionAttribute = gl.getAttribLocation(program, "in_pos");
     gl.enableVertexAttribArray(program.vertexPositionAttribute);
@@ -93,6 +102,7 @@ async function init(){
 
     //turn on depth testing
     gl.enable(gl.DEPTH_TEST);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
 
 
     gl.drawElements(gl.TRIANGLES, objects[0].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -105,6 +115,7 @@ window.onload = init;
 
 
 function drawScene(gl, object) {
+
     // update WV matrix
     cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
     cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
@@ -119,11 +130,69 @@ function drawScene(gl, object) {
 
     // draws the answer
         WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
-        gl.uniformMatrix4fv(program.WVPmatrixUniform, false, utils.transposeMatrix(WVPmatrix));
+        gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
         gl.drawElements(gl.TRIANGLES, object.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 
+//Before drawObjects is necessary to setup the uniforms, scene graph and world matrix
+//the uniforms needs to be calculated for each object and are made by
+//objectUniform.u_matrix = matrix made by -> viewProjection, transforms/world
+//the function drawObjects sets the uniforms before draw
+function drawObjects(gl, objects){ //TODO integrare nel codice
+    objects.forEach(function (element){
+      var programInfo = element.programInfo;
+      var bufferInfo = element.bufferInfo;
+
+      gl.useProgram(programInfo.program);
+
+      //setup attributes
+        webglUtils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+
+        //set uniforms
+        webglUtils.setUniforms(programInfo, element.uniforms);
+
+        gl.drawArrays(gl.TRIANGLES, 0, bufferInfo.numElements);
+    })
+}
+
+//recursive function to compute world matrix for each object
+function computeWorld(currentNode, parentWorldMatrix){ //TODO integrare quando sarà definito il model
+    var worldMatrix = m4.multiply(parentWorldMatrix, currentNode.localWorldMatrix);
+
+    currentNode.children.forEach(function (child){
+        computeWorld(child, worldMatrix);
+    });
+
+}
+
+function toggleFullScreen() {
+    var canvas = document.getElementById("canvas");
+    if(!document.fullscreenElement) {
+        let outcome = canvas.requestFullscreen();
+        if(!outcome){
+            window.alert("Impossible to change to Full Screen");
+        }
+    }
+    else {
+        if(document.exitFullscreen) {
+            let outcome = document.exitFullscreen();
+            if(!outcome){
+                window.alert("Impossible to exit to Full Screen");
+            }
+        }
+    }
+}
+
+
+
 /*
+Note
+- dobbiamo fare lo shader in world space, questo significa che Light Direction, Light Position e Eye position possono essere usati in quanto sono
+    già definiti in world space. Dobbiamo trasformare in world space le posizioni dei vertici e delle normali degli oggetti.
+    nelle slides (esercitazione 05 - Normals and Shading Spaces) è spiegato bene.
+
+-per la funzione del disegno bisogna stare attenti all'ordine. chiamare draw partendo dagli oggetti posteriori nella scena fino a quelli in primo
+    piano. per fare questo basta ordinare per profondità.
 
  */

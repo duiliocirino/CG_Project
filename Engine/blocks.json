@@ -1,2 +1,3 @@
 ["Graphics/Models/Environment/brick.obj", "Graphics/Models/Environment/cloud.obj", "Graphics/Models/Environment/cylinderIsland.obj",
-    "Graphics/Models/Environment/mountain.obj", "Graphics/Models/Environment/rock.obj", "Graphics/Models/Environment/squareIsland.obj"]
+    "Graphics/Models/Environment/mountain.obj", "Graphics/Models/Environment/rock.obj", "Graphics/Models/Environment/squareIsland.obj",
+    "Graphics/Models/Blocks/tree.obj"]
