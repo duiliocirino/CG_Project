@@ -1,6 +1,16 @@
+var gl;
 
-
+//Program used to render
 var program;
+
+//VAO
+var vao_arr; //data structure containing all the VAO (one for each type of obj)
+
+//OBJECTS
+var objects; // list of objects to be rendered
+
+//TEXTURES and BUFFERS
+var texture;
 
 //Parameters for Camera
 var cx = 4.5;
@@ -19,37 +29,47 @@ function node(localWorldMatrix, children){
 
 async function loadObjects(file) {
     var text = await file.text();
-    var objects = JSON.parse(text);
+    var objectsJ = JSON.parse(text);
     var objStr = [];
     var meshes = [];
-    for (i = 0; i< objects.length; i++){
-        objStr[i] = await utils.get_objstr(objects[i]);
+    for (i = 0; i< objectsJ.length; i++){
+        objStr[i] = await utils.get_objstr(objectsJ[i]);
         meshes[i] = new OBJ.Mesh(objStr[i]);
     }
     return meshes;
 }
 
-async function init(){
+/**
+ * Entry point of the WebGL program
+ */
+async function init() {
     var path = window.location.pathname;
     var page = path.split("/").pop();
     baseDir = window.location.href.replace(page, '');
+    shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
+
+    // getCanvas()
 
     var canvas = document.getElementById("canvas");
-    var gl = canvas.getContext("webgl2");
-
-    gl.canvas.height = window.innerHeight;
-    gl.canvas.width = window.innerWidth;
+    gl = canvas.getContext("webgl2")
+    if (!gl) {
+        document.write("GL context not opened");
+        return;
+    } else {
+        console.log('WebGL version: ', gl.getParameter(gl.VERSION));
+        console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
+        console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
+        depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
+    }
+    utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Clear the canvas
     gl.clearColor(0, 0.3, 1, 0.6);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-
     //Compile and Link Shaders
-
-    shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
-    //await makes the init function stop until the loadFiles function has completed
-    await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText){
+    //load shaders from file
+    await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
         var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
         var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
         program = utils.createProgram(gl, vertexShader, fragmentShader);
@@ -59,9 +79,7 @@ async function init(){
 
     //Load object
     var objectFile = await fetch("Engine/blocks.json");
-    var objects = await loadObjects(objectFile);
-
-
+    objects = await loadObjects(objectFile);
 
     //link mesh attributes to shader attributes
     program.vertexPositionAttribute = gl.getAttribLocation(program, "in_pos");
@@ -79,12 +97,9 @@ async function init(){
     OBJ.initMeshBuffers(gl, objects[0]);
 
 
-
     //prepare the world
 
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
-
-
 
 
     // selects the mesh
@@ -97,7 +112,6 @@ async function init(){
     gl.vertexAttribPointer(program.vertexNormalAttribute, objects[0].normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[0].indexBuffer);
-
 
 
     //turn on depth testing
