@@ -22,11 +22,21 @@ var lookRadius = 10.0;
 
 
 //Node definition
+/**
+ * Class used to define a node of the scene graph
+ * @param localWorldMatrix is the world matrix of the node
+ * @param children is an array of children nodes
+ */
 function node(localWorldMatrix, children){
     this.localWorldMatrix = localWorldMatrix;
     this.children = children;
 }
 
+/**
+ * Function used to load the meshes of a list of .obj files passed by json.
+ * @param file is the json file containing the locations of the objects
+ * @returns {Promise<*[]>} an array containing all the meshes of the loaded obj files
+ */
 async function loadObjects(file) {
     var text = await file.text();
     var objectsJ = JSON.parse(text);
@@ -127,7 +137,7 @@ async function init() {
 
 window.onload = init;
 
-
+//Da sostituire con drawObjects
 function drawScene(gl, object) {
 
     // update WV matrix
@@ -153,6 +163,11 @@ function drawScene(gl, object) {
 //the uniforms needs to be calculated for each object and are made by
 //objectUniform.u_matrix = matrix made by -> viewProjection, transforms/world
 //the function drawObjects sets the uniforms before draw
+/**
+ * The function sets the buffers and the uniforms for each object, then draws the scene.
+ * @param gl is the context
+ * @param objects an array with all the objects to draw. For each object is needed the world matrix and program and buffer info.
+ */
 function drawObjects(gl, objects){ //TODO integrare nel codice
     objects.forEach(function (element){
       var programInfo = element.programInfo;
@@ -171,7 +186,15 @@ function drawObjects(gl, objects){ //TODO integrare nel codice
 }
 
 //recursive function to compute world matrix for each object
+/**
+ * The function calculates the world matrix for each object of the scene graph. For the graph root use null at parentWorldMatrix.
+ * @param currentNode The node for which the matrix is being calculated
+ * @param parentWorldMatrix the world matrix of the parent node
+ */
 function computeWorld(currentNode, parentWorldMatrix){ //TODO integrare quando sarà definito il model
+    if(parentWorldMatrix == null){
+        parentWorldMatrix = utils.identityMatrix();
+    }
     var worldMatrix = m4.multiply(parentWorldMatrix, currentNode.localWorldMatrix);
 
     currentNode.children.forEach(function (child){
@@ -180,6 +203,9 @@ function computeWorld(currentNode, parentWorldMatrix){ //TODO integrare quando s
 
 }
 
+/**
+ * Toggles between window mode and full screen.
+ */
 function toggleFullScreen() {
     var canvas = document.getElementById("canvas");
     if(!document.fullscreenElement) {
@@ -197,6 +223,8 @@ function toggleFullScreen() {
         }
     }
 }
+
+//TODO funzione per portare da mappa a albero con le matrici, iniziare fisica personaggio
 
 
 
