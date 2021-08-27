@@ -80,8 +80,10 @@ async function loadObjects(file) {
     var meshes = [];
     for (let i = 0; i< objectsJ.length; i++){
         objStr[i] = await utils.get_objstr(objectsJ[i]);
-        meshes[i].mesh = new OBJ.Mesh(objStr[i]);
-        meshes[i].code = i;
+        meshes[i] = {
+            mesh: new OBJ.Mesh(objStr[i]),
+            code: i
+        };
     }
     return meshes;
 }
@@ -114,7 +116,7 @@ function getCanvas() {
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Clear the canvas
-    gl.clearColor(0, 0.3, 1, 0.6);
+    gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
@@ -184,7 +186,7 @@ async function init() {
     //link mesh attributes to shader attributes
     getAttributesAndUniformLocations();
 
-    OBJ.initMeshBuffers(gl, objects[5]);
+    OBJ.initMeshBuffers(gl, objects[5].mesh);
 
 
     //prepare the world

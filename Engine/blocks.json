@@ -5,6 +5,6 @@
     "Graphics/Models/Environment/rock.obj",
     "Graphics/Models/Environment/squareIsland.obj",
     "Graphics/Models/Blocks/tree.obj",
-    "Graphics/Models/Blocks/ghost.obj",
+    "Graphics/Models/Environment/ghost.obj",
     "Graphics/Models/Environment/marioPipe.obj",
     "Graphics/Models/Environment/marioPipeBottom.obj"]
