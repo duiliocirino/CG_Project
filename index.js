@@ -1,3 +1,22 @@
+import {Map} from "./Engine/Model/Map.js";
+import {Block} from "./Engine/Model/Block.js";
+import {MapHandler} from "./Engine/Model/MapHandler.js";
+
+// Global variable to save the last id value of a Map
+let lastMapId = 0;
+// Global variable to save the last id value of a Block
+let lastBlockId = 0;
+// MapHandler instance
+var mapHandler = new MapHandler();
+//
+var baseDir;
+var shaderDir;
+//
+var perspectiveMatrix;
+var projectionMatrix;
+var viewMatrix;
+var WVPmatrix;
+
 var gl;
 
 //Program used to render
@@ -12,14 +31,28 @@ var objects; // list of objects to be rendered
 //TEXTURES and BUFFERS
 var texture;
 
+//LIGHTS
+var directLightColorHandle;
+var directLightDirectionHandle;
+var ambientLightHandle;
+
+var settings = {
+    //direct
+    directLightTheta: 30,
+    directLightPhi: 40,
+    directLightColor: [0.8, 0.8, 0.6],
+    directLightDir: [null, null, null],
+    //ambient
+    ambientLight: [0.2, 0.2, 0.2]
+}
+
 //Parameters for Camera
 var cx = 4.5;
 var cy = 0.0;
 var cz = 10.0;
-var elevation = 0.0;
+var elevation = 50.0;
 var angle = 0.0;
-var lookRadius = 10.0;
-
+var lookRadius = 50.0;
 
 //Node definition
 /**
@@ -42,7 +75,7 @@ async function loadObjects(file) {
     var objectsJ = JSON.parse(text);
     var objStr = [];
     var meshes = [];
-    for (i = 0; i< objectsJ.length; i++){
+    for (let i = 0; i< objectsJ.length; i++){
         objStr[i] = await utils.get_objstr(objectsJ[i]);
         meshes[i] = new OBJ.Mesh(objStr[i]);
     }
@@ -69,7 +102,7 @@ async function init() {
         console.log('WebGL version: ', gl.getParameter(gl.VERSION));
         console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
         console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
-        depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
+        let depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
     }
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -91,6 +124,24 @@ async function init() {
     var objectFile = await fetch("Engine/blocks.json");
     objects = await loadObjects(objectFile);
 
+    texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    var image = new Image();
+    image.src = "Graphics/Models/Terrain-Texture_2.png";
+    image.onload = function () {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+    };
+
     //link mesh attributes to shader attributes
     program.vertexPositionAttribute = gl.getAttribLocation(program, "in_pos");
     gl.enableVertexAttribArray(program.vertexPositionAttribute);
@@ -104,7 +155,7 @@ async function init() {
     program.WVPmatrixUniform = gl.getUniformLocation(program, "pMatrix");
     program.textureUniform = gl.getUniformLocation(program, "u_texture");
 
-    OBJ.initMeshBuffers(gl, objects[0]);
+    OBJ.initMeshBuffers(gl, objects[5]);
 
 
     //prepare the world
@@ -112,33 +163,60 @@ async function init() {
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
 
 
+    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
+    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
+    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+
+
     // selects the mesh
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].vertexBuffer);
-    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[0].vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].textureBuffer);
-    gl.vertexAttribPointer(program.textureCoordAttribute, objects[0].textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].vertexBuffer);
+    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[5].vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].textureBuffer);
+    gl.vertexAttribPointer(program.textureCoordAttribute, objects[5].textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[0].normalBuffer);
-    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[0].normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].normalBuffer);
+    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[5].normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[0].indexBuffer);
-
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].indexBuffer);
 
     //turn on depth testing
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
 
-    gl.drawElements(gl.TRIANGLES, objects[0].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-    drawScene(gl, objects[0]);
+    gl.drawElements(gl.TRIANGLES, objects[5].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    drawScene(gl, objects[5]);
 
-
+    main();
 }
 
 window.onload = init;
 
+/**
+ * Get the parameter of the lights from the UI and used to define the light parameters before the rendering
+ */
+function lightDefinition() {
+    var dirLightTheta = -utils.degToRad(settings.directLightTheta);
+    var dirLightPhi = -utils.degToRad(settings.directLightPhi);
+    settings.directLightDir[0] = Math.cos(dirLightTheta) * Math.cos(dirLightPhi);
+    settings.directLightDir[1] = Math.sin(dirLightTheta);
+    settings.directLightDir[2] = Math.cos(dirLightTheta) * Math.sin(dirLightPhi);
+}
+
+function main(){
+    var map = new Map("First map");
+    map.addBlock(new Block(0,0, "ciao"));
+    map.addBlock(new Block(1,0, "ciao"));
+    map.addBlock(new Block(0,1, "ciao"));
+    map.addBlock(new Block(1,1, "ciao"));
+    map.popBlock();
+    mapHandler.storeMap(map);
+    console.log(mapHandler.getMaps())
+}
+
 //Da sostituire con drawObjects
 function drawScene(gl, object) {
+    lightDefinition();
 
     // update WV matrix
     cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
@@ -148,14 +226,19 @@ function drawScene(gl, object) {
     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix);
 
     // sets the uniforms
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(program.textureUniform, 0);
 
+    gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+    gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+    gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
 
     // draws the answer
-        WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
-        gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
-        gl.drawElements(gl.TRIANGLES, object.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
+    gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
+    gl.drawElements(gl.TRIANGLES, object.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 
