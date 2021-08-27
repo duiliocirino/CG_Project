@@ -1,3 +1,10 @@
-["Graphics/Models/Environment/brick.obj", "Graphics/Models/Environment/cloud.obj", "Graphics/Models/Environment/cylinderIsland.obj",
-    "Graphics/Models/Environment/mountain.obj", "Graphics/Models/Environment/rock.obj", "Graphics/Models/Environment/squareIsland.obj",
-    "Graphics/Models/Blocks/tree.obj"]
+["Graphics/Models/Environment/brick.obj",
+    "Graphics/Models/Environment/cloud.obj",
+    "Graphics/Models/Environment/cylinderIsland.obj",
+    "Graphics/Models/Environment/mountain.obj",
+    "Graphics/Models/Environment/rock.obj",
+    "Graphics/Models/Environment/squareIsland.obj",
+    "Graphics/Models/Blocks/tree.obj",
+    "Graphics/Models/Blocks/ghost.obj",
+    "Graphics/Models/Environment/marioPipe.obj",
+    "Graphics/Models/Environment/marioPipeBottom.obj"]

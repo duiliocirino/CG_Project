@@ -59,10 +59,13 @@ var lookRadius = 50.0;
  * Class used to define a node of the scene graph
  * @param localWorldMatrix is the world matrix of the node
  * @param children is an array of children nodes
+ * @param drawInfo contains Mesh and Texture of the object
  */
-function node(localWorldMatrix, children){
+function node(localWorldMatrix, children, drawInfo){
     this.localWorldMatrix = localWorldMatrix;
     this.children = children;
+    this.drawInfo = drawInfo;
+    return this;
 }
 
 /**
@@ -77,22 +80,26 @@ async function loadObjects(file) {
     var meshes = [];
     for (let i = 0; i< objectsJ.length; i++){
         objStr[i] = await utils.get_objstr(objectsJ[i]);
-        meshes[i] = new OBJ.Mesh(objStr[i]);
+        meshes[i].mesh = new OBJ.Mesh(objStr[i]);
+        meshes[i].code = i;
     }
     return meshes;
 }
-
-/**
- * Entry point of the WebGL program
+//Mesh codes
+/*
+1- brick
+2- cloud
+3- cylinderIsland
+4- mountain
+5- rock
+6- squareIsland
+7- tree
+8- ghost
+9- Mario Pipe //attenzione il modello non è dritto -> rotazione 90 asse z
+10- Mario Pipe Base //attenzione il modello non è dritto -> rotazione 90  asse z
  */
-async function init() {
-    var path = window.location.pathname;
-    var page = path.split("/").pop();
-    baseDir = window.location.href.replace(page, '');
-    shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
 
-    // getCanvas()
-
+function getCanvas() {
     var canvas = document.getElementById("canvas");
     gl = canvas.getContext("webgl2")
     if (!gl) {
@@ -109,21 +116,9 @@ async function init() {
     // Clear the canvas
     gl.clearColor(0, 0.3, 1, 0.6);
     gl.clear(gl.COLOR_BUFFER_BIT);
+}
 
-    //Compile and Link Shaders
-    //load shaders from file
-    await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
-        var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
-        var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
-        program = utils.createProgram(gl, vertexShader, fragmentShader);
-    });
-    gl.useProgram(program);
-
-
-    //Load object
-    var objectFile = await fetch("Engine/blocks.json");
-    objects = await loadObjects(objectFile);
-
+function setupTextures() {
     texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -139,10 +134,10 @@ async function init() {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
         gl.generateMipmap(gl.TEXTURE_2D);
-
     };
+}
 
-    //link mesh attributes to shader attributes
+function getAttributesAndUniformLocations() { //TODO controllare che non serva altro
     program.vertexPositionAttribute = gl.getAttribLocation(program, "in_pos");
     gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
@@ -153,7 +148,41 @@ async function init() {
     gl.enableVertexAttribArray(program.textureCoordAttribute);
 
     program.WVPmatrixUniform = gl.getUniformLocation(program, "pMatrix");
+
     program.textureUniform = gl.getUniformLocation(program, "u_texture");
+
+}
+
+/**
+ * Entry point of the WebGL program
+ */
+async function init() {
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    baseDir = window.location.href.replace(page, '');
+    shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
+
+    getCanvas();
+
+    //Compile and Link Shaders
+    //load shaders from file
+    await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
+        var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+        var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+        program = utils.createProgram(gl, vertexShader, fragmentShader);
+    });
+
+    gl.useProgram(program);
+
+    //Load object
+    var objectFile = await fetch("Engine/blocks.json");
+    objects = await loadObjects(objectFile);
+
+    //load Texture
+    setupTextures();
+
+    //link mesh attributes to shader attributes
+    getAttributesAndUniformLocations();
 
     OBJ.initMeshBuffers(gl, objects[5]);
 
@@ -162,10 +191,11 @@ async function init() {
 
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
 
-
     directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
     directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
     ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+
+/*
 
 
     // selects the mesh
@@ -179,13 +209,15 @@ async function init() {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].indexBuffer);
 
+
+*/
     //turn on depth testing
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
 
-    gl.drawElements(gl.TRIANGLES, objects[5].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-    drawScene(gl, objects[5]);
+    //gl.drawElements(gl.TRIANGLES, objects[5].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    //drawScene(gl, objects[5]);
 
     main();
 }
@@ -212,6 +244,8 @@ function main(){
     map.popBlock();
     mapHandler.storeMap(map);
     console.log(mapHandler.getMaps())
+    const level = createMap(map, objects);
+    drawObjects(gl, level);
 }
 
 //Da sostituire con drawObjects
@@ -279,6 +313,7 @@ function computeWorld(currentNode, parentWorldMatrix){ //TODO integrare quando s
         parentWorldMatrix = utils.identityMatrix();
     }
     var worldMatrix = m4.multiply(parentWorldMatrix, currentNode.localWorldMatrix);
+    currentNode.localWorldMatrix=worldMatrix;
 
     currentNode.children.forEach(function (child){
         computeWorld(child, worldMatrix);
@@ -308,7 +343,40 @@ function toggleFullScreen() {
 }
 
 //TODO funzione per portare da mappa a albero con le matrici, iniziare fisica personaggio
+/**
+ * creates an array with all the objects to draw and the relative world matrices.
+ * @param map is the map created by the user and contains all the placement and types of blocks.
+ * @param objects is the list of available blocks.
+ */
+function createMap(map, objects){
+    var level = [];
+    var children = [];
+    map.forEach(function(element){
+        const blockType = element.type;
+        const xPos = element.x;
+        const yPos = element.y;
+        const drawInfo = getMesh(blockType, objects);
+        const matrix = utils.multiplyMatrices(utils.MakeScaleMatrix(0,1), utils.MakeTranslateMatrix(xPos,yPos,0));
+        const piece =  node(matrix, null, drawInfo);
+        level.push(piece);
+        children.push(piece);
+    });
+    const pipeBase = node(utils.MakeTranslateMatrix(-0.5, 0, 0), children, getMesh(10), objects);
+    level.unshift(pipeBase);
+    const pipe = node(utils.identityMatrix(), pipeBase,  getMesh(9, objects));
+    level.unshift(pipe);
+    computeWorld(level[0], null);
+    return level;
+}
 
+/**
+ * returns the mesh and the texture of the requested element as a drawInfo object.
+ * @param blockType the ID of the block.
+ * @param blockList the list of available blocks.
+ */
+function getMesh(blockType, blockList){
+    return blockList[blockType-1].drawInfo;
+}
 
 
 /*
