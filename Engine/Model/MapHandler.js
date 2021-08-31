@@ -1,16 +1,17 @@
 export class MapHandler{
     constructor() {
         this.maps = [];
-        if(localStorage.getItem("maps") === "") {
-            localStorage.setItem("maps", this.maps);
+        var temp = JSON.parse(localStorage.getItem("maps"));
+        if(temp === null) {
+            localStorage.setItem("maps", JSON.stringify(this.maps));
         } else{
-            this.maps = localStorage.getItem("maps")
+            this.maps = JSON.parse(localStorage.getItem("maps"));
         }
     }
 
     storeMap(map){
         this.maps.push(map);
-        localStorage.setItem("maps", this.maps);
+        localStorage.setItem("maps", JSON.stringify(this.maps));
     }
 
     removeMap(mapId) {

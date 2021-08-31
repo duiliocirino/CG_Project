@@ -197,31 +197,30 @@ async function init() {
     directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
     ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
 
-/*
-
 
     // selects the mesh
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].vertexBuffer);
-    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[5].vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].textureBuffer);
-    gl.vertexAttribPointer(program.textureCoordAttribute, objects[5].textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.vertexBuffer);
+    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[5].mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.textureBuffer);
+    gl.vertexAttribPointer(program.textureCoordAttribute, objects[5].mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].normalBuffer);
-    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[5].normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.normalBuffer);
+    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[5].mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].indexBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].mesh.indexBuffer);
 
 
-*/
     //turn on depth testing
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
 
-    //gl.drawElements(gl.TRIANGLES, objects[5].indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-    //drawScene(gl, objects[5]);
+    setTimeout(function (){
+        gl.drawElements(gl.TRIANGLES, objects[5].mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        drawScene(gl, objects[5]);
 
-    main();
+        main();
+    }, 2000)
 }
 
 window.onload = init;
@@ -238,16 +237,7 @@ function lightDefinition() {
 }
 
 function main(){
-    var map = new Map("First map");
-    map.addBlock(new Block(0,0, "ciao"));
-    map.addBlock(new Block(1,0, "ciao"));
-    map.addBlock(new Block(0,1, "ciao"));
-    map.addBlock(new Block(1,1, "ciao"));
-    map.popBlock();
-    mapHandler.storeMap(map);
-    console.log(mapHandler.getMaps())
-    const level = createMap(map, objects);
-    drawObjects(gl, level);
+
 }
 
 //Da sostituire con drawObjects
@@ -274,7 +264,9 @@ function drawScene(gl, object) {
     // draws the answer
     WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
     gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
-    gl.drawElements(gl.TRIANGLES, object.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, object.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+    window.requestAnimationFrame(drawScene);
 }
 
 
