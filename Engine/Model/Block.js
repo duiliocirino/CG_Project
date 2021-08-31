@@ -6,6 +6,8 @@ export class Block{
         this.drawInfo = drawInfo;
     }
 
+    lastBlockId = 0;
+
     setPosition(x, y) {
         this.position = [x, y];
     }

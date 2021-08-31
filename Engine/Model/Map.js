@@ -1,12 +1,16 @@
 /**
  * Class cont
  */
+
 export class Map{
     constructor(name) {
-        this.id = 1;
+        this.id = this.lastMapId + 1;
+        this.lastMapId += 1;
         this.blocks = [];
         this.name = name;
     }
+
+    lastMapId = 0;
 
     removeBlock(blockId) {
         var block = this.blocks.find(b => b.id === blockId);

@@ -2,10 +2,6 @@ import {Map} from "./Engine/Model/Map.js";
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
 
-// Global variable to save the last id value of a Map
-let lastMapId = 0;
-// Global variable to save the last id value of a Block
-let lastBlockId = 0;
 // MapHandler instance
 var mapHandler = new MapHandler();
 //
@@ -84,6 +80,7 @@ async function loadObjects(file) {
             mesh: new OBJ.Mesh(objStr[i]),
             code: i
         };
+        OBJ.initMeshBuffers(gl, meshes[i].mesh);
     }
     return meshes;
 }
@@ -100,6 +97,13 @@ async function loadObjects(file) {
 9- Mario Pipe //attenzione il modello non è dritto -> rotazione 90 asse z
 10- Mario Pipe Base //attenzione il modello non è dritto -> rotazione 90  asse z
  */
+
+function setViewportAndCanvas() {
+    utils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
 
 function getCanvas() {
     var canvas = document.getElementById("canvas");
@@ -153,6 +157,10 @@ function getAttributesAndUniformLocations() { //TODO controllare che non serva a
 
     program.textureUniform = gl.getUniformLocation(program, "u_texture");
 
+    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
+    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
+    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+
 }
 
 /**
@@ -183,44 +191,7 @@ async function init() {
     //load Texture
     setupTextures();
 
-    //link mesh attributes to shader attributes
-    getAttributesAndUniformLocations();
-
-    OBJ.initMeshBuffers(gl, objects[5].mesh);
-
-
-    //prepare the world
-
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
-
-    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
-    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
-    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
-
-
-    // selects the mesh
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.vertexBuffer);
-    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[5].mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.textureBuffer);
-    gl.vertexAttribPointer(program.textureCoordAttribute, objects[5].mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.normalBuffer);
-    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[5].mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].mesh.indexBuffer);
-
-
-    //turn on depth testing
-    gl.enable(gl.DEPTH_TEST);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-
-
-    setTimeout(function (){
-        gl.drawElements(gl.TRIANGLES, objects[5].mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        drawScene(gl, objects[5]);
-
-        main();
-    }, 2000)
+    main();
 }
 
 window.onload = init;
@@ -236,20 +207,58 @@ function lightDefinition() {
     settings.directLightDir[2] = Math.cos(dirLightTheta) * Math.sin(dirLightPhi);
 }
 
-function main(){
+function setMatrices() {
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
+    viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
+    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix);
+}
 
+function render(){
+    lightDefinition();
+    //animate()
+
+
+    //turn on depth testing
+    gl.enable(gl.DEPTH_TEST);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+
+    setMatrices();
+
+    setViewportAndCanvas();
+
+    //drawScene
+    gl.drawElements(gl.TRIANGLES, objects[5].mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    drawScene(objects[5]);
+
+    requestAnimationFrame(render);
+}
+
+function main(){
+    //link mesh attributes to shader attributes
+    getAttributesAndUniformLocations();
+
+    //prepare the world
+
+    // selects the mesh
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.vertexBuffer);
+    gl.vertexAttribPointer(program.vertexPositionAttribute, objects[5].mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.textureBuffer);
+    gl.vertexAttribPointer(program.textureCoordAttribute, objects[5].mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, objects[5].mesh.normalBuffer);
+    gl.vertexAttribPointer(program.vertexNormalAttribute, objects[5].mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, objects[5].mesh.indexBuffer);
+
+    window.requestAnimationFrame(render);
 }
 
 //Da sostituire con drawObjects
-function drawScene(gl, object) {
-    lightDefinition();
-
+function drawScene(object) {
     // update WV matrix
     cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
     cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
     cy = lookRadius * Math.sin(utils.degToRad(-elevation));
-    viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix);
 
     // sets the uniforms
     gl.activeTexture(gl.TEXTURE0);
@@ -265,8 +274,6 @@ function drawScene(gl, object) {
     WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
     gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
     gl.drawElements(gl.TRIANGLES, object.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
-    window.requestAnimationFrame(drawScene);
 }
 
 
