@@ -6,31 +6,34 @@ export class Map{
     constructor(name) {
         this.id = this.lastMapId + 1;
         this.lastMapId += 1;
-        this.blocks = [];
+        this.playableObjects = [];
+        this.decorations = [];
         this.name = name;
     }
 
     lastMapId = 0;
 
-    removeBlock(blockId) {
-        var block = this.blocks.find(b => b.id === blockId);
+    removePlayable(blockId) {
+        var block = this.playableObjects.find(b => b.id === blockId);
         if(!isNaN(block.id)){
-            this.blocks.splice(this.blocks.indexOf(block), 1);
+            this.playableObjects.splice(this.playableObjects.indexOf(block), 1);
         }
     }
 
-    popBlock() {
-        if (this.blocks.length > 0){
-            this.blocks.pop();
+    popPlayable() {
+        if (this.playableObjects.length > 0){
+            this.playableObjects.pop();
         }
     }
 
-    addBlock(block){
-        this.blocks.push(block)
+    addPlayable(block){
+        this.playableObjects.push(block)
     }
 
-    editBlock(blockId, x, y) {
-        var oldBlock = this.blocks.find(b => b.id === blockId);
+    editPlayable(blockId, x, y) {
+        var oldBlock = this.playableObjects.find(b => b.id === blockId);
         if(!isNaN(oldBlock.id)) oldBlock.setPosition(x ,y);
     }
+
+    //TODO: decorations implementation
 }

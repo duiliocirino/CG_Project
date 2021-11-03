@@ -16,7 +16,7 @@ out vec4 color;
 
 void main() {
   vec4 texColor = texture(u_texture, fs_uv);
-  vec3 directLightDirNorm = normalize(u_directLightDirection);
+  vec3 directLightDirNorm = normalize(-u_directLightDirection);
   vec3 nNormal = normalize(fs_norm);
 
   vec3 diffuse = texColor.rgb * u_directLightColor * max(0.0, dot(-directLightDirNorm, nNormal));

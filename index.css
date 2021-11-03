@@ -7,24 +7,131 @@
     height: 50vh;
     width: 100vh;
 
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     text-align: center;
 }
 
 .menu_button {
-    font-family: "Comic Sans MS";
     margin: 0 auto;
-    float: bottom;
     height: 33%;
     width: 33%;
+
+    vertical-align: middle;
+    position: relative;
+    top: 25%;
 }
 
 .menu_title {
-    float: top;
-    margin: 0 auto;
-    font-family: "Comic Sans MS";
+    margin: auto 0;
+    font-size: 25px;
+    position: relative;
+    top: 10%;
+}
+
+* {
+    margin: 0;
+    padding: 0;
 }
 
 canvas{
     position: absolute;
     z-index: -1;
+}
+
+body {
+    font-family: "Comic Sans MS", serif;
+}
+
+
+
+
+
+
+#gui {
+    position: absolute;
+    z-index: 1;
+    left: 30px;
+    top: 30px;
+    width: 300px;
+    overflow: auto
+}
+
+.score p {
+    font-size: 60pt;
+    text-align: center;
+    font-family: Arial;
+    padding-top: 35pt;
+    margin: 0 0 0 0;
+    font-weight: bold;
+    color: #552306;
+}
+
+.buttons {
+    margin-top: 10px;
+}
+
+.lives {
+    width:80%;
+    margin: 10px auto;
+}
+
+#end_game {
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    top: 0px;
+    background: rgba(40, 40, 40, 0.5);
+}
+
+.gui-container {
+    font-family: Arial;
+    position: absolute;
+    z-index: 1;
+    left: 20px;
+    bottom: 30px;
+    border-style: dotted;
+    border-color: rgba(71, 72, 71, 0.64);
+    overflow: auto;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    background-color: rgba(181, 174, 174, 0.66);
+    text-shadow: -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, 1px 1px 0 #FFF;
+    border-radius: 15px;
+    font-size: small;
+    display: grid;
+}
+.gui-element{
+    display: flex;
+    align-items: center;
+    float: right;
+    height: 1.7em;
+}
+
+.gui-slider{
+    min-width: 80px;
+    margin-left: .3em;
+    margin-right: .3em;
+    opacity: 0.7;
+}
+
+.gui-slider-text{
+    text-align: right;
+    min-width: 6em;
+}
+
+.gui-slider-value{
+    float: right;
+    min-width: 3.5em;
+    order: 1;
+}
+.gui-subgroup-text{
+    text-align: right;
+    min-width: 6em;
+    font-weight: bold;
 }
