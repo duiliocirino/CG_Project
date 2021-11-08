@@ -1,21 +1,16 @@
 import {Map} from "./Engine/Model/Map.js";
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
-import {Node} from "./Engine/Model/Node.js";
-import {m4} from "./Engine/TWGL/twgl.js";
-import * as webglUtils from "./Engine/TWGL/programs.js";
-import * as twgl from "./Engine/TWGL/twgl.js";
+import {SkyBox} from "./Engine/SkyBox.js";
 
 // MapHandler instance
 var mapHandler = new MapHandler();
 //
 var baseDir;
-var shaderDir;
 //
 var perspectiveMatrix;
 var projectionMatrix;
 var viewMatrix;
-var WVPmatrix;
 
 var gl;
 
@@ -51,19 +46,6 @@ var directLightColorHandle;
 var directLightDirectionHandle;
 var ambientLightHandle;
 
-var settings = {
-    //direct
-    directLightTheta: 30,
-    directLightPhi: 40,
-    directLightColor: [0.8, 0.8, 0.6],
-    directLightDir: [null, null, null],
-    //ambient
-    ambientLight: [0.2, 0.2, 0.2],
-
-
-    cameraGamePosition: [0.0, 7.0, 4.0],
-    cameraPosition: [0.0, 10.0, -20.0]
-}
 
 //Parameters for Camera
 var cx = 4.0;
@@ -72,6 +54,10 @@ var cz = 10.0;
 var elevation = 50.0;
 var angle = 0.0;
 var lookRadius = 60.0;
+
+
+//SKYBOX
+var skyBox = new SkyBox();
 
 
 /**
@@ -193,13 +179,14 @@ async function init() {
     var path = window.location.pathname;
     var page = path.split("/").pop();
     baseDir = window.location.href.replace(page, '');
-    shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
+    settings.shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
+    settings.skyboxDir = baseDir + "Graphics/Env/"; //Skybox directories
 
     getCanvas();
 
     //Compile and Link Shaders
     //load shaders from file
-    await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
+    await utils.loadFiles([settings.shaderDir + 'vs.glsl', settings.shaderDir + 'fs.glsl'], function (shaderText) {
         var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
         var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
         program = utils.createProgram(gl, vertexShader, fragmentShader);
@@ -224,6 +211,8 @@ function main(){
 
     setGuiListeners();
 
+    skyBox.loadEnvironment(gl);
+
     //prepare the world
     sceneRoot = prepareWorld();
 
@@ -247,8 +236,11 @@ function setMatrices() { // TODO: fare look-at matrix?
     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix); // usare bene nella drawScene
 }
 
+
+
 function render(){
     lightDefinition();
+
     //animate()
 
     //turn on depth testing
@@ -261,6 +253,8 @@ function render(){
     sceneRoot.updateWorldMatrix();
 
     setViewportAndCanvas();
+
+    skyBox.InitializeAndDraw();
 
     //drawScene
     drawScene();
