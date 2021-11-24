@@ -78,35 +78,6 @@ async function loadObjects(file) {
         };
         OBJ.initMeshBuffers(gl, meshes[i].mesh);
     }
-
-    meshes.forEach(mesh => {
-        var vao = gl.createVertexArray();
-
-        gl.bindVertexArray(vao);
-        var positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertices), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-        var normalBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexNormals), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(normalAttributeLocation);
-        gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-        var uvBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.textures), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(uvAttributeLocation);
-        gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-
-        var indexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.STATIC_DRAW);
-
-        vao_arr.push(vao);
-    });
 }
 
 function getCanvas() {
@@ -157,8 +128,11 @@ function setupTextures() { //TODO modificare per caricare le textures sugli ogge
 
 function getAttributesAndUniformLocations() { //TODO serve altro
     positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
+    gl.enableVertexAttribArray(positionAttributeLocation);
     normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
+    gl.enableVertexAttribArray(normalAttributeLocation);
     uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    gl.enableVertexAttribArray(uvAttributeLocation);
 
     wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
     positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
@@ -205,16 +179,39 @@ async function init() {
 }
 
 
+function createVaos() {
+    meshes.forEach(mesh => {
+        var vao = gl.createVertexArray();
+
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.vertexBuffer);
+
+        gl.vertexAttribPointer(positionAttributeLocation, mesh.mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.normalBuffer);
+        gl.vertexAttribPointer(normalAttributeLocation, mesh.mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.textureBuffer);
+        gl.vertexAttribPointer(uvAttributeLocation, mesh.mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.mesh.indexBuffer);
+
+        vao_arr.push(vao);
+    });
+}
+
 function main(){
     //link mesh attributes to shader attributes
     getAttributesAndUniformLocations();
+
+    createVaos();
 
     setGuiListeners();
 
     skyBox.loadEnvironment(gl);
 
     //prepare the world
-    sceneRoot = prepareWorld();
+    sceneRoot = prepareWorld(); //funziona?
 
     window.requestAnimationFrame(render);
 }
@@ -244,7 +241,6 @@ function render(){
     //animate()
 
     //turn on depth testing
-    gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
@@ -387,7 +383,7 @@ function sceneGraphDefinition(map){
     var playerNode = new Node(utils.MakeTranslateMatrix(0.5, 0, 0));
     playerNode.drawInfo = {
         programInfo: program,
-        bufferLength: meshes[8].mesh.indices.length,
+        bufferLength: meshes[8].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[8]
     };
     playerNode.setParent(worldSpace);
@@ -398,7 +394,8 @@ function sceneGraphDefinition(map){
 
     const pipe = new Node(utils.identityMatrix());
     pipe.drawInfo = {
-        bufferLength: meshes[9].mesh.indices.length,
+        programInfo: program,
+        bufferLength: meshes[9].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[9]
     };
     pipe.setParent(mapSpace);
@@ -406,7 +403,8 @@ function sceneGraphDefinition(map){
 
     const pipeBase = new Node(utils.identityMatrix());
     pipeBase.drawInfo = {
-        bufferLength: meshes[10].mesh.indices.length,
+        programInfo: program,
+        bufferLength: meshes[10].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[10]
     };
     pipeBase.setParent(mapSpace);
@@ -418,7 +416,7 @@ function sceneGraphDefinition(map){
         const node = new Node(utils.MakeTranslateMatrix(xPos,yPos,0));
         node.drawInfo = {
             programInfo: program,
-            bufferLength: meshes[element.type].mesh.indices.length,
+            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
             vertexArray: vao_arr[element.type]
         };
         node.setParent(mapSpace);

@@ -140,8 +140,8 @@ async function loadSkyBoxEnvironment(){
         //upload the canvas to the cubemap face
         const level = 0;
         const internalFormat = gl.RGBA;
-        const width = 512;
-        const height = 512;
+        const width = 1024;
+        const height = 1024;
         const format = gl.RGBA;
         const type = gl.UNSIGNED_BYTE;
 
@@ -200,7 +200,7 @@ function drawSkyBox(){
 
     gl.bindVertexArray(skyBox_vao);
     gl.depthFunc(gl.LEQUAL);
-    gl.drawArrays(gl.TRIANGLES, 0, 1*6);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 }
 
