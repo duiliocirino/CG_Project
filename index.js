@@ -2,6 +2,7 @@ import {Map} from "./Engine/Model/Map.js";
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
 import {SkyBox} from "./Engine/SkyBox.js";
+import {Node} from "./Engine/Model/Node.js";
 
 // MapHandler instance
 var mapHandler = new MapHandler();
@@ -50,7 +51,7 @@ var ambientLightHandle;
 //Parameters for Camera
 var cx = 4.0;
 var cy = 0.0;
-var cz = 10.0;
+var cz = 20.0;
 var elevation = 50.0;
 var angle = 0.0;
 var lookRadius = 60.0;
@@ -95,14 +96,14 @@ function getCanvas() {
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Clear the canvas
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(1, 1, 1, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
 function setViewportAndCanvas() {
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(1, 1, 1, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
@@ -182,6 +183,10 @@ async function init() {
 function createVaos() {
     meshes.forEach(mesh => {
         var vao = gl.createVertexArray();
+
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.enableVertexAttribArray(normalAttributeLocation);
+        gl.enableVertexAttribArray(uvAttributeLocation);
 
         gl.bindVertexArray(vao);
         gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.vertexBuffer);
@@ -279,7 +284,7 @@ function drawScene() {
         gl.uniform1i(textureUniformLocation, 0);
 
         gl.bindVertexArray(object.drawInfo.vertexArray);
-        gl.drawArrays(gl.TRIANGLES, 0, object.drawInfo.bufferLength);
+        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0);
     });
     // draws the answer
     /*WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
@@ -388,7 +393,7 @@ function sceneGraphDefinition(map){
     };
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
-
+/*
     var mapSpace = new Node(utils.MakeTranslateMatrix(0,0,0));
     mapSpace.setParent(worldSpace);
 
@@ -422,7 +427,7 @@ function sceneGraphDefinition(map){
         node.setParent(mapSpace);
         objects.push(node);
     });
-
+*/
     return worldSpace;
 }
 
