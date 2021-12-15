@@ -61,91 +61,7 @@ var lookRadius = 60.0;
 var skyBox = new SkyBox();
 
 
-/**
- * Function used to load the meshes of a list of .obj files passed by json.
- * @param file is the json file containing the locations of the objects
- * @returns {Promise<*[]>} an array containing all the meshes of the loaded obj files
- */
-async function loadObjects(file) {
-    var text = await file.text();
-    var objectsJ = JSON.parse(text);
-    var objStr = [];
-    meshes = [];
-    for (let i = 0; i< objectsJ.length; i++){
-        objStr[i] = await utils.get_objstr(objectsJ[i]);
-        meshes[i] = {
-            mesh: new OBJ.Mesh(objStr[i]),
-            code: i
-        };
-        OBJ.initMeshBuffers(gl, meshes[i].mesh);
-    }
-}
-
-function getCanvas() {
-    var canvas = document.getElementById("canvas");
-    gl = canvas.getContext("webgl2")
-    if (!gl) {
-        document.write("GL context not opened");
-        return;
-    } else {
-        console.log('WebGL version: ', gl.getParameter(gl.VERSION));
-        console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
-        console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
-        let depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
-    }
-    utils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    // Clear the canvas
-    gl.clearColor(1, 1, 1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-}
-
-function setViewportAndCanvas() {
-    utils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(1, 1, 1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-}
-
-function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
-    texture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    var image = new Image();
-    image.src = "Graphics/Models/Terrain-Texture_2.png";
-    image.onload = function () {
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-        gl.generateMipmap(gl.TEXTURE_2D);
-    };
-}
-
-
-function getAttributesAndUniformLocations() { //TODO serve altro
-    positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
-    gl.enableVertexAttribArray(uvAttributeLocation);
-
-    wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
-    positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
-    normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
-
-    textureUniformLocation = gl.getUniformLocation(program, "u_texture");
-
-    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
-    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
-    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
-
-}
+//#region Init and Main
 
 /**
  * Entry point of the WebGL program
@@ -179,6 +95,92 @@ async function init() {
     main();
 }
 
+function main(){
+    //link mesh attributes to shader attributes
+    getAttributesAndUniformLocations();
+
+    createVaos();
+
+    //put attributes on GPU?? - ex 03 cleaning the code
+
+    setGuiListeners();
+
+    skyBox.loadEnvironment(gl);
+
+    //prepare the world
+    sceneRoot = prepareWorld(); //funziona?
+
+    window.requestAnimationFrame(render);
+}
+
+//#endregion
+
+
+//#region Obj Load and Textures
+
+/**
+ * Function used to load the meshes of a list of .obj files passed by json.
+ * @param file is the json file containing the locations of the objects
+ * @returns {Promise<*[]>} an array containing all the meshes of the loaded obj files
+ */
+async function loadObjects(file) {
+    var text = await file.text();
+    var objectsJ = JSON.parse(text);
+    var objStr = [];
+    meshes = [];
+    for (let i = 0; i< objectsJ.length; i++){
+        objStr[i] = await utils.get_objstr(objectsJ[i]);
+        meshes[i] = {
+            mesh: new OBJ.Mesh(objStr[i]),
+            code: i
+        };
+        OBJ.initMeshBuffers(gl, meshes[i].mesh);
+    }
+}
+
+function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
+    texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    var image = new Image();
+    image.src = "Graphics/Models/Terrain-Texture_2.png";
+    image.onload = function () {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
+}
+
+//endregion
+
+
+//#region Program Initialization
+
+function getAttributesAndUniformLocations() { //TODO serve altro
+    positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
+    gl.enableVertexAttribArray(positionAttributeLocation);
+    normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
+    gl.enableVertexAttribArray(normalAttributeLocation);
+    uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    gl.enableVertexAttribArray(uvAttributeLocation);
+
+    wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
+    positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
+    normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
+
+    textureUniformLocation = gl.getUniformLocation(program, "u_texture");
+
+    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
+    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
+    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+
+}
 
 function createVaos() {
     meshes.forEach(mesh => {
@@ -205,41 +207,100 @@ function createVaos() {
     });
 }
 
-function main(){
-    //link mesh attributes to shader attributes
-    getAttributesAndUniformLocations();
+//#endregion
 
-    createVaos();
 
-    setGuiListeners();
+//#region World Creation
 
-    skyBox.loadEnvironment(gl);
-
-    //prepare the world
-    sceneRoot = prepareWorld(); //funziona?
-
-    window.requestAnimationFrame(render);
+function prepareWorld() {
+    var map = new Map("First map");
+    map.addPlayable(new Block(0,0, 0));
+    map.addPlayable(new Block(1,0, 0));
+    map.addPlayable(new Block(2,1, 1));
+    map.addPlayable(new Block(3,1, 1));
+    map.addPlayable(new Block(4,0, 0));
+    map.addPlayable(new Block(5,0, 0));
+    map.addPlayable(new Block(6,1, 1));
+    map.addPlayable(new Block(7,1, 1));
+    map.addPlayable(new Block(8,0, 0));
+    //map.popBlock();
+    //mapHandler.storeMap(map);
+    //console.log(mapHandler.getMaps())
+    return sceneGraphDefinition(map);
 }
+
+//Mesh codes
+/*
+0- brick
+1- hedge
+2- cloud
+3- cylinderIsland
+4- mountain
+5- rock
+6- squareIsland
+7- tree
+8- ghost
+9- Mario Pipe //attenzione il modello non è dritto -> rotazione 90 asse z
+10- Mario Pipe Base //attenzione il modello non è dritto -> rotazione 90  asse z
+ */
 
 /**
- * Get the parameter of the lights from the UI and used to define the light parameters before the rendering
+ * creates an array with all the objects to draw and the relative world matrices.
+ * @param map is the map created by the user and contains all the placement and types of blocks.
  */
-function lightDefinition() {
-    var dirLightTheta = -utils.degToRad(settings.directLightTheta);
-    var dirLightPhi = -utils.degToRad(settings.directLightPhi);
-    settings.directLightDir[0] = Math.cos(dirLightTheta) * Math.cos(dirLightPhi);
-    settings.directLightDir[1] = Math.sin(dirLightTheta);
-    settings.directLightDir[2] = Math.cos(dirLightTheta) * Math.sin(dirLightPhi);
+function sceneGraphDefinition(map){
+    var worldSpace = new Node(utils.MakeWorld(0, 0, 0, 0, 0, 0, 1.0));
+
+    var playerNode = new Node(utils.MakeTranslateMatrix(0.5, 0, 0));
+    playerNode.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[8].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[8]
+    };
+    playerNode.setParent(worldSpace);
+    objects.push(playerNode);
+
+    var mapSpace = new Node(utils.MakeTranslateMatrix(0,0,0));
+    mapSpace.setParent(worldSpace);
+
+    /*const pipe = new Node(utils.identityMatrix());
+    pipe.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[9].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[9]
+    };
+    pipe.setParent(mapSpace);
+    objects.push(pipe);
+
+    const pipeBase = new Node(utils.identityMatrix());
+    pipeBase.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[10].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[10]
+    };
+    pipeBase.setParent(mapSpace);
+    objects.push(pipeBase);*/
+
+    map.playableObjects.forEach(function(element){
+        const xPos = element.position[0];
+        const yPos = element.position[1];
+        const node = new Node(utils.MakeTranslateMatrix(xPos,yPos,0));
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[element.type]
+        };
+        node.setParent(mapSpace);
+        objects.push(node);
+    });
+
+    return worldSpace;
 }
 
-function setMatrices() { // TODO: fare look-at matrix?
-    viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix); // usare bene nella drawScene
-}
+//#endregion
 
 
-
+//#region Draw Calls
 function render(){
     lightDefinition();
 
@@ -263,7 +324,7 @@ function render(){
     requestAnimationFrame(render);
 }
 
-//Da sostituire con drawObjects
+//Da sostituire con drawObjects //da fare o no?
 function drawScene() {
     objects.forEach(function (object){
         gl.useProgram(program);
@@ -286,10 +347,53 @@ function drawScene() {
         gl.bindVertexArray(object.drawInfo.vertexArray);
         gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0);
     });
-    // draws the answer
-    /*WVPmatrix = utils.multiplyMatrices(projectionMatrix, utils.MakeScaleMatrix(1));
-    gl.uniformMatrix4fv(program.WVPmatrixUniform, gl.FALSE, utils.transposeMatrix(WVPmatrix));
-    gl.drawElements(gl.TRIANGLES, object.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);*/
+}
+
+//#endregion
+
+
+function getCanvas() {
+    var canvas = document.getElementById("canvas");
+    gl = canvas.getContext("webgl2")
+    if (!gl) {
+        document.write("GL context not opened");
+        return;
+    } else {
+        console.log('WebGL version: ', gl.getParameter(gl.VERSION));
+        console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
+        console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
+        let depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
+    }
+    utils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    // Clear the canvas
+    gl.clearColor(1, 1, 1, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+function setViewportAndCanvas() {
+    utils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(1, 1, 1, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
+
+
+/**
+ * Get the parameter of the lights from the UI and used to define the light parameters before the rendering
+ */
+function lightDefinition() {
+    var dirLightTheta = -utils.degToRad(settings.directLightTheta);
+    var dirLightPhi = -utils.degToRad(settings.directLightPhi);
+    settings.directLightDir[0] = Math.cos(dirLightTheta) * Math.cos(dirLightPhi);
+    settings.directLightDir[1] = Math.sin(dirLightTheta);
+    settings.directLightDir[2] = Math.cos(dirLightTheta) * Math.sin(dirLightPhi);
+}
+
+function setMatrices() { // TODO: fare look-at matrix?
+    viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
+    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix); // usare bene nella drawScene
 }
 
 
@@ -319,28 +423,6 @@ function drawScene() {
     })
 }*/
 
-//recursive function to compute world matrix for each object
-/**
- * The function calculates the world matrix for each object of the scene graph. For the graph root use null at parentWorldMatrix.
- * @param currentNode The node for which the matrix is being calculated
- * @param parentWorldMatrix the world matrix of the parent node
- */
-/*function computeWorld(currentNode, parentWorldMatrix){ //TODO integrare quando sarà definito il model
-    if(parentWorldMatrix == null){
-        parentWorldMatrix = utils.identityMatrix();
-    }
-    var worldMatrix = m4.multiply(parentWorldMatrix, currentNode.localWorldMatrix);
-    currentNode.localWorldMatrix=worldMatrix;
-
-    if(currentNode.children != null){
-        var ramifications = currentNode.children;
-
-        ramifications.forEach(function (child){
-            computeWorld(child, worldMatrix);
-        });
-    }
-}*/
-
 /**
  * Toggles between window mode and full screen.
  */
@@ -360,92 +442,6 @@ function toggleFullScreen() {
             }
         }
     }
-}
-
-//Mesh codes
-/*
-0- brick
-1- hedge
-2- cloud
-3- cylinderIsland
-4- mountain
-5- rock
-6- squareIsland
-7- tree
-8- ghost
-9- Mario Pipe //attenzione il modello non è dritto -> rotazione 90 asse z
-10- Mario Pipe Base //attenzione il modello non è dritto -> rotazione 90  asse z
- */
-
-//TODO funzione per portare da mappa a albero con le matrici, iniziare fisica personaggio
-/**
- * creates an array with all the objects to draw and the relative world matrices.
- * @param map is the map created by the user and contains all the placement and types of blocks.
- */
-function sceneGraphDefinition(map){
-    var worldSpace = new Node(utils.MakeWorld(0, 0, 0, 0, 0, 0, 1.0));
-
-    var playerNode = new Node(utils.MakeTranslateMatrix(0.5, 0, 0));
-    playerNode.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[8].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[8]
-    };
-    playerNode.setParent(worldSpace);
-    objects.push(playerNode);
-/*
-    var mapSpace = new Node(utils.MakeTranslateMatrix(0,0,0));
-    mapSpace.setParent(worldSpace);
-
-    const pipe = new Node(utils.identityMatrix());
-    pipe.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9]
-    };
-    pipe.setParent(mapSpace);
-    objects.push(pipe);
-
-    const pipeBase = new Node(utils.identityMatrix());
-    pipeBase.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[10].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[10]
-    };
-    pipeBase.setParent(mapSpace);
-    objects.push(pipeBase);
-
-    map.playableObjects.forEach(function(element){
-        const xPos = element.position[0];
-        const yPos = element.position[1];
-        const node = new Node(utils.MakeTranslateMatrix(xPos,yPos,0));
-        node.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[element.type]
-        };
-        node.setParent(mapSpace);
-        objects.push(node);
-    });
-*/
-    return worldSpace;
-}
-
-function prepareWorld() {
-    var map = new Map("First map");
-    map.addPlayable(new Block(0,0, 0));
-    map.addPlayable(new Block(1,0, 0));
-    map.addPlayable(new Block(2,1, 1));
-    map.addPlayable(new Block(3,1, 1));
-    map.addPlayable(new Block(4,0, 0));
-    map.addPlayable(new Block(5,0, 0));
-    map.addPlayable(new Block(6,1, 1));
-    map.addPlayable(new Block(7,1, 1));
-    map.addPlayable(new Block(8,0, 0));
-    //map.popBlock();
-    //mapHandler.storeMap(map);
-    //console.log(mapHandler.getMaps())
-    return sceneGraphDefinition(map);
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------
