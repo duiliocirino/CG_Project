@@ -26,6 +26,7 @@ var meshes = [];
 
 //OBJECTS
 var objects = []; // list of objects to be rendered
+var worldSpace;
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -59,7 +60,6 @@ var lookRadius = 60.0;
 
 //SKYBOX
 var skyBox = new SkyBox();
-
 
 //#region Init and Main
 
@@ -96,25 +96,201 @@ async function init() {
 }
 
 function main(){
-    //link mesh attributes to shader attributes
-    getAttributesAndUniformLocations();
+    var dirLightAlpha = -utils.degToRad(-60);
+    var dirLightBeta  = -utils.degToRad(120);
+    var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+        Math.sin(dirLightAlpha), Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)];
+    var directionalLightColor = [0.8, 1.0, 1.0];
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0.85, 0.85, 0.85, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+
+    getAttributesAndUniformLocation();
 
     createVaos();
 
-    //put attributes on GPU?? - ex 03 cleaning the code
-
-    setGuiListeners();
+    //setGuiListeners();
 
     skyBox.loadEnvironment(gl);
 
-    //prepare the world
-    sceneRoot = prepareWorld(); //funziona?
+    sceneGraphDefinition();
 
-    window.requestAnimationFrame(render);
+    requestAnimationFrame(drawScene);
 }
-
 //#endregion
 
+
+//#region Program Initialization
+function getAttributesAndUniformLocation(){
+    positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
+    normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
+    uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+
+    wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
+    positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
+    normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
+
+    textureUniformLocation = gl.getUniformLocation(program, "u_texture");
+
+    directLightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+    directLightColorHandle = gl.getUniformLocation(program, 'lightColor');
+    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+}
+
+function createVaos(){
+    meshes.forEach(mesh => {
+        var vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.vertexBuffer);
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(positionAttributeLocation, mesh.mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.normalBuffer);
+        gl.enableVertexAttribArray(normalAttributeLocation);
+        gl.vertexAttribPointer(normalAttributeLocation, mesh.mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.textureBuffer);
+        gl.enableVertexAttribArray(uvAttributeLocation);
+        gl.vertexAttribPointer(uvAttributeLocation, mesh.mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.mesh.indexBuffer);
+
+        vao_arr.push(vao);
+    });
+}
+
+function sceneGraphDefinition(){
+    /*worldNode = new Node();
+    var objectNode = new Node();
+    objectNode.localMatrix = utils.MakeScaleMatrix(1,1,1);
+    objectNode.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[6].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[6]
+    };
+    var objectNode2 = new Node();
+    objectNode2.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(-20,0,0), utils.MakeScaleMatrix(1,1,1));
+    objectNode2.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[6].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[6]
+    };
+
+    objectNode.setParent(worldNode);
+    objectNode2.setParent(worldNode)
+    objects.push(objectNode);
+    objects.push(objectNode2);*/
+
+    var map = new Map("First map");
+    map.addPlayable(new Block(0,0, 6));
+    map.addPlayable(new Block(20,0, 6));
+    map.addPlayable(new Block(40,20, 0));
+    map.addPlayable(new Block(60,20, 0));
+    map.addPlayable(new Block(80,0, 6));
+    map.addPlayable(new Block(100,0, 6));
+    map.addPlayable(new Block(120,20, 0));
+    map.addPlayable(new Block(140,20, 0));
+    map.addPlayable(new Block(160,0, 6));
+
+    worldSpace = new Node();
+    worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
+
+    var playerNode = new Node();
+    playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 20, 0), utils.MakeScaleMatrix(4))
+    playerNode.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[8].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[8]
+    };
+    playerNode.setParent(worldSpace);
+    objects.push(playerNode);
+
+    var mapSpace = new Node();
+    mapSpace.setParent(worldSpace);
+
+    /*const pipe = new Node();
+    pipe.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[9].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[9]
+    };
+    pipe.setParent(mapSpace);
+    objects.push(pipe);
+
+    const pipeBase = new Node();
+    pipeBase.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[10].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[10]
+    };
+    pipeBase.setParent(mapSpace);
+    objects.push(pipeBase);*/
+
+    map.playableObjects.forEach(function(element){
+        const xPos = element.position[0];
+        const yPos = element.position[1];
+        const node = new Node();
+        node.localMatrix = utils.MakeTranslateMatrix(xPos,yPos,0);
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[element.type]
+        };
+        node.setParent(mapSpace);
+        objects.push(node);
+    });
+}
+//endregion
+
+function drawScene(){
+    gl.clearColor(0.85, 0.85, 0.85, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Compute the projection matrix
+    var aspect = gl.canvas.width / gl.canvas.height;
+    var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
+
+    // Compute the camera matrix using look at.
+    var cameraPosition = [0.0, -20.0, 200.0];
+    var target = [0.0, 0.0, 0.0];
+    var up = [0.0, 0.0, 1.0];
+    var cameraMatrix = utils.LookAt(cameraPosition, target, up);
+    var viewMatrix = utils.invertMatrix(cameraMatrix);
+
+    var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
+
+    worldSpace.updateWorldMatrix();
+
+    skyBox.InitializeAndDraw();
+
+    objects.forEach(function(object) {
+        gl.useProgram(object.drawInfo.programInfo);
+
+        var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
+        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
+        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
+        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(textureUniformLocation, 0);
+
+        gl.bindVertexArray(object.drawInfo.vertexArray);
+        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
+    });
+    requestAnimationFrame(drawScene);
+}
 
 //#region Obj Load and Textures
 
@@ -159,200 +335,7 @@ function setupTextures() { //TODO modificare per caricare le textures sugli ogge
 
 //endregion
 
-
-//#region Program Initialization
-
-function getAttributesAndUniformLocations() { //TODO serve altro
-    positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
-    gl.enableVertexAttribArray(uvAttributeLocation);
-
-    wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
-    positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
-    normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
-
-    textureUniformLocation = gl.getUniformLocation(program, "u_texture");
-
-    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
-    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
-    ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
-
-}
-
-function createVaos() {
-    meshes.forEach(mesh => {
-        var vao = gl.createVertexArray();
-        gl.bindVertexArray(vao);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.vertexBuffer);
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.vertexAttribPointer(positionAttributeLocation, mesh.mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.normalBuffer);
-        gl.enableVertexAttribArray(normalAttributeLocation);
-        gl.vertexAttribPointer(normalAttributeLocation, mesh.mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.textureBuffer);
-        gl.enableVertexAttribArray(uvAttributeLocation);
-        gl.vertexAttribPointer(uvAttributeLocation, mesh.mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.mesh.indexBuffer);
-
-        vao_arr.push(vao);
-    });
-}
-
-//#endregion
-
-
-//#region World Creation
-
-function prepareWorld() {
-    var map = new Map("First map");
-    map.addPlayable(new Block(0,0, 0));
-    map.addPlayable(new Block(1,0, 0));
-    map.addPlayable(new Block(2,1, 1));
-    map.addPlayable(new Block(3,1, 1));
-    map.addPlayable(new Block(4,0, 0));
-    map.addPlayable(new Block(5,0, 0));
-    map.addPlayable(new Block(6,1, 1));
-    map.addPlayable(new Block(7,1, 1));
-    map.addPlayable(new Block(8,0, 0));
-    //map.popBlock();
-    //mapHandler.storeMap(map);
-    //console.log(mapHandler.getMaps())
-    return sceneGraphDefinition(map);
-}
-
-//Mesh codes
-/*
-0- brick
-1- hedge
-2- cloud
-3- cylinderIsland
-4- mountain
-5- rock
-6- squareIsland
-7- tree
-8- ghost
-9- Mario Pipe //attenzione il modello non è dritto -> rotazione 90 asse z
-10- Mario Pipe Base //attenzione il modello non è dritto -> rotazione 90  asse z
- */
-
-/**
- * creates an array with all the objects to draw and the relative world matrices.
- * @param map is the map created by the user and contains all the placement and types of blocks.
- */
-function sceneGraphDefinition(map){
-    var worldSpace = new Node(utils.MakeWorld(0, 0, 0, 0, 0, 0, 1.0));
-
-    var playerNode = new Node(utils.MakeTranslateMatrix(0.5, 0, 0));
-    playerNode.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[8].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[8]
-    };
-    playerNode.setParent(worldSpace);
-    objects.push(playerNode);
-
-    /*var mapSpace = new Node(utils.MakeTranslateMatrix(0,0,0));
-    mapSpace.setParent(worldSpace);
-
-    const pipe = new Node(utils.identityMatrix());
-    pipe.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9]
-    };
-    pipe.setParent(mapSpace);
-    objects.push(pipe);
-
-    const pipeBase = new Node(utils.identityMatrix());
-    pipeBase.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[10].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[10]
-    };
-    pipeBase.setParent(mapSpace);
-    objects.push(pipeBase);
-
-    map.playableObjects.forEach(function(element){
-        const xPos = element.position[0];
-        const yPos = element.position[1];
-        const node = new Node(utils.MakeTranslateMatrix(xPos,yPos,0));
-        node.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[element.type]
-        };
-        node.setParent(mapSpace);
-        objects.push(node);
-    });
-    */
-
-    return worldSpace;
-}
-
-//#endregion
-
-
-//#region Draw Calls
-function render(){
-    lightDefinition();
-
-    //animate()
-
-    //turn on depth testing
-    gl.enable(gl.DEPTH_TEST);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-
-    setMatrices();
-
-    sceneRoot.updateWorldMatrix();
-
-    setViewportAndCanvas();
-
-    skyBox.InitializeAndDraw();
-
-    //drawScene
-    drawScene();
-
-    requestAnimationFrame(render);
-}
-
-//Da sostituire con drawObjects //da fare o no?
-function drawScene() {
-    objects.forEach(function (object){
-        gl.useProgram(program);
-        
-        createVaos();
-
-        var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, object.worldMatrix);
-        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
-
-        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(viewProjectionMatrix));
-        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
-        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
-
-        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
-        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
-        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.uniform1i(textureUniformLocation, 0);
-
-        gl.bindVertexArray(object.drawInfo.vertexArray);
-        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0);
-    });
-}
-
-//#endregion
-
-
+//#region Canvas
 function getCanvas() {
     var canvas = document.getElementById("canvas");
     gl = canvas.getContext("webgl2")
@@ -372,80 +355,8 @@ function getCanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
-function setViewportAndCanvas() {
-    utils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(1, 1, 1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-}
+//endregion
 
-
-/**
- * Get the parameter of the lights from the UI and used to define the light parameters before the rendering
- */
-function lightDefinition() {
-    var dirLightTheta = -utils.degToRad(settings.directLightTheta);
-    var dirLightPhi = -utils.degToRad(settings.directLightPhi);
-    settings.directLightDir[0] = Math.cos(dirLightTheta) * Math.cos(dirLightPhi);
-    settings.directLightDir[1] = Math.sin(dirLightTheta);
-    settings.directLightDir[2] = Math.cos(dirLightTheta) * Math.sin(dirLightPhi);
-}
-
-function setMatrices() { // TODO: fare look-at matrix?
-    viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.clientWidth/gl.canvas.clientHeight, 0.1, 100.0);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, viewMatrix); // usare bene nella drawScene
-}
-
-
-//Before drawObjects is necessary to setup the uniforms, scene graph and world matrix
-//the uniforms needs to be calculated for each object and are made by
-//objectUniform.u_matrix = matrix made by -> viewProjection, transforms/world
-//the function drawObjects sets the uniforms before draw
-/**
- * The function sets the buffers and the uniforms for each object, then draws the scene.
- * @param gl is the context
- * @param objects an array with all the objects to draw. For each object is needed the world matrix and program and buffer info.
- */
-/*function drawObjects(gl, objects){ //TODO integrare nel codice
-    objects.forEach(function (element){
-      var programInfo = element.programInfo;
-      var bufferInfo = element.bufferInfo;
-
-      gl.useProgram(program);
-
-      //setup attributes
-        webglUtils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-
-        //set uniforms
-        webglUtils.setUniforms(programInfo, element.uniforms);
-
-        gl.drawArrays(gl.TRIANGLES, 0, bufferInfo.numElements);
-    })
-}*/
-
-/**
- * Toggles between window mode and full screen.
- */
-function toggleFullScreen() {
-    var canvas = document.getElementById("canvas");
-    if(!document.fullscreenElement) {
-        let outcome = canvas.requestFullscreen();
-        if(!outcome){
-            window.alert("Impossible to change to Full Screen");
-        }
-    }
-    else {
-        if(document.exitFullscreen) {
-            let outcome = document.exitFullscreen();
-            if(!outcome){
-                window.alert("Impossible to exit to Full Screen");
-            }
-        }
-    }
-}
-
-// ------------------------------------------------------------------------------------------------------------------------------
 /**
  * EVENT LISTENERS
  */
@@ -501,7 +412,7 @@ function onSliderChange(slider_value, id) {
     settings.directLightPhi = gui_settings['dirPhi'].value;
 }
 
-function setGuiListeners(){
+/*function setGuiListeners(){
     document.getElementById("cameraX_slider").addEventListener("input", function (event){
         onSliderChange(this.value, 'cameraX');
     }, false);
@@ -523,17 +434,6 @@ function setGuiListeners(){
     document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
         onSliderChange(this.value, 'fieldOfView');
     }, false);
-}
+}*/
 
-window.onload = init;
-
-/*
-Note
-- dobbiamo fare lo shader in world space, questo significa che Light Direction, Light Position e Eye position possono essere usati in quanto sono
-    già definiti in world space. Dobbiamo trasformare in world space le posizioni dei vertici e delle normali degli oggetti.
-    nelle slides (esercitazione 05 - Normals and Shading Spaces) è spiegato bene.
-
--per la funzione del disegno bisogna stare attenti all'ordine. chiamare draw partendo dagli oggetti posteriori nella scena fino a quelli in primo
-    piano. per fare questo basta ordinare per profondità.
-
- */
+window.onload = init();

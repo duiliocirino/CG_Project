@@ -14,7 +14,7 @@ var settings = {
     /** camera parameters */
     cameraGamePosition: [0.0, 7.0, 4.0],
     cameraPosition: [0.0, 10.0, 20.0],
-    target: [0.0, 0.8 * 2.5, 0.0], //2.5 is te scale factor
+    target: [-10.0, 20, 0.0], //2.5 is te scale factor
     //the target is not the origin but the point of the cabinet where the moles jump.
     up: [0.0, 1.0, 0.0],
     fieldOfView: 60,

@@ -8,9 +8,9 @@ export class Node{
      * @param children is an array of children nodes
      * @param drawInfo contains Mesh and Texture of the object
      */
-    constructor(localWorldMatrix) {
+    constructor() {
         this.children = [];
-        this.localMatrix = localWorldMatrix;
+        this.localMatrix = utils.identityMatrix();
         this.worldMatrix = utils.identityMatrix();
     }
 
