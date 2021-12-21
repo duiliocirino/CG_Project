@@ -77,6 +77,12 @@ var verticalAcceleration = 0;
 var deceleration = 0.5; //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
 
 
+//EasterEgg
+var easterEgg = 0;
+var keyPressed = false;
+var activePlayerModel = 0;
+
+
 
 //#region Init and Main
 
@@ -400,11 +406,6 @@ function getCanvas() {
 
 //endregion
 
-//region Player Movement
-
-
-
-//endregion
 
 /**
  * EVENT LISTENERS
@@ -494,12 +495,14 @@ function onKeyDown(event){
             break;
         case 65: //A
             horizontalAcceleration = -0.8;
+            checkEasterEgg(4)
             break;
         case 83: //S
             //
             break;
         case 68: //D
             horizontalAcceleration = 0.8;
+            checkEasterEgg(6);
             break;
         case 32: //SPACEBAR
             //
@@ -525,7 +528,27 @@ function onKeyDown(event){
         case 27: //ESC
             //
             break;
-
+        case 71: //G
+            checkEasterEgg(0)
+            break;
+        case 82: //R
+            checkEasterEgg(1)
+            break;
+        case 73: //I
+            checkEasterEgg(2)
+            break;
+        case 66: //B
+            checkEasterEgg(3);
+            break;
+        case 85: //U
+            checkEasterEgg(5);
+            break;
+        case 79: //O
+            checkEasterEgg(7);
+            if(easterEgg === 8){
+                swapPlayerModel();
+            }
+            break;
     }
 }
 
@@ -537,6 +560,7 @@ function onKeyUp(event){
         case 65: //A
             horizontalAcceleration = 0;
             horizontalSpeed = 0;
+            keyPressed = false;
             break;
         case 83: //S
             //
@@ -544,6 +568,7 @@ function onKeyUp(event){
         case 68: //D
             horizontalAcceleration = 0;
             horizontalSpeed = 0;
+            keyPressed = false;
             break;
         case 32: //SPACEBAR
             //
@@ -562,8 +587,59 @@ function onKeyUp(event){
         case 40: //DOWN ARROW
             //
             break;
+        case 71: //G
+            keyPressed = false;
+            break;
+        case 82: //R
+            keyPressed = false;
+            break;
+        case 73: //I
+            keyPressed = false;
+            break;
+        case 66: //B
+            keyPressed = false;
+            break;
+        case 85: //U
+            keyPressed = false;
+            break;
+        case 79: //O
+            keyPressed = false;
+            break;
     }
 }
+
+//#region EasterEgg
+
+//For each letter checks if the sequence is correct, if not resets the counter
+function checkEasterEgg(letterNumber){
+    if(easterEgg === letterNumber && keyPressed === false){
+        easterEgg++;
+        keyPressed = true;
+        return;
+    }
+    if(easterEgg !== letterNumber){
+        easterEgg = 0;
+    }
+    keyPressed = true;
+
+}
+
+//if the sequence for the easter egg is complete swaps the player model
+function swapPlayerModel(){
+    if(activePlayerModel === 0){
+        objects[0].drawInfo.bufferLength = meshes[7].mesh.indexBuffer.numItems;
+        objects[0].drawInfo.vertexArray = vao_arr[7];
+        activePlayerModel = 1;
+    }
+    else{
+        objects[0].drawInfo.bufferLength = meshes[8].mesh.indexBuffer.numItems;
+        objects[0].drawInfo.vertexArray = vao_arr[8];
+        activePlayerModel = 0;
+    }
+    easterEgg = 0;
+}
+
+//endregion
 
 //endregion
 
