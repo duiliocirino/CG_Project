@@ -3,22 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <title>Platform Maker Create</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="create.css">
     <script type="text/javascript" src ="Engine/webgl-obj-loader.js"></script>
-    <script type="text/javascript" src="Engine/webglUtils.js"></script>
     <script type="text/javascript" src="Engine/settings.js"></script>
-    <script type="module" src="Engine/TWGL/twgl.js"></script>
     <script type="text/javascript" src="Engine/utils.js"></script>
-    <script type="module" src="Engine/TWGL/m4.js"></script>
-    <script type="module" src="Engine/TWGL/v3.js"></script>
-    <script type="module" src="Engine/TWGL/primitives.js"></script>
     <script type="module" src="create.js"></script>
 </head>
 <body>
     <canvas id="canvas">Not working canvas</canvas>
+    <div id="backContainer" class="button_container">
+        <button onclick="location.href='index.html'">Back</button>
+    </div>
     <div class="create-container">
-        <input type="number" value="0">
-        <input type="number" value="0">
+        <label>Last block x: <span id="lastX">0</span></label><br>
+        <label>Last block y: <span id="lastY">0</span></label><br>
+        <label>x: </label>
+        <input id="newX" name="x" type="number" value="0"><br>
+        <label>y: </label>
+        <input id="newY" name="y" type="number" value="0"><br>
+        <label>type: </label>
+        <select id="newType" name="type">
+            <option value="0">Brick</option>
+            <option value="1">Hedge</option>
+            <option value="2">Cloud</option>
+            <option value="3">CylinderIsland</option>
+            <option value="4">Mountain</option>
+            <option value="5">Rock</option>
+            <option value="6">SquareIsland</option>
+            <option value="7">Tree</option>
+        </select><br>
+        <button id="createButton">CREATE</button>
     </div>
 </body>
 </html>

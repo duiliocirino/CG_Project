@@ -27,6 +27,7 @@ var meshes = [];
 //OBJECTS
 var objects = []; // list of objects to be rendered
 var worldSpace;
+var mapSpace;
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -50,12 +51,9 @@ var ambientLightHandle;
 
 
 //Parameters for Camera
-var cx = 4.0;
-var cy = 0.0;
-var cz = 20.0;
-var elevation = 50.0;
-var angle = 0.0;
-var lookRadius = 60.0;
+var cameraPosition = [0.0, 0.0, 200.0];
+var target = [0.0, 0.0, 0.0];
+var up = [0.0, 1.0, 0.0];
 
 
 //SKYBOX
@@ -113,7 +111,10 @@ function main(){
 
     createVaos();
 
-    //setGuiListeners();
+    setGuiListeners();
+
+    document.addEventListener("keydown", onKeyDown, false);
+    document.addEventListener("keyup", onKeyUp, false);
 
     skyBox.loadEnvironment(gl);
 
@@ -188,20 +189,16 @@ function sceneGraphDefinition(){
 
     var map = new Map("First map");
     map.addPlayable(new Block(0,0, 6));
-    map.addPlayable(new Block(20,0, 6));
-    map.addPlayable(new Block(40,20, 0));
-    map.addPlayable(new Block(60,20, 0));
-    map.addPlayable(new Block(80,0, 6));
-    map.addPlayable(new Block(100,0, 6));
-    map.addPlayable(new Block(120,20, 0));
-    map.addPlayable(new Block(140,20, 0));
-    map.addPlayable(new Block(160,0, 6));
 
     worldSpace = new Node();
-    worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
+    worldSpace.localMatrix = utils.MakeWorld(-70, -60, 0, 0, 0, 0, 1.0);
 
     var playerNode = new Node();
-    playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 20, 0), utils.MakeScaleMatrix(4))
+    playerNode.localMatrix = utils.multiplyMatrices(
+        utils.MakeRotateYMatrix(utils.degToRad(90)),
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(0, 20, 0),
+            utils.MakeScaleMatrix(4)))
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -210,26 +207,8 @@ function sceneGraphDefinition(){
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
 
-    var mapSpace = new Node();
+    mapSpace = new Node();
     mapSpace.setParent(worldSpace);
-
-    /*const pipe = new Node();
-    pipe.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9]
-    };
-    pipe.setParent(mapSpace);
-    objects.push(pipe);
-
-    const pipeBase = new Node();
-    pipeBase.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[10].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[10]
-    };
-    pipeBase.setParent(mapSpace);
-    objects.push(pipeBase);*/
 
     map.playableObjects.forEach(function(element){
         const xPos = element.position[0];
@@ -256,9 +235,6 @@ function drawScene(){
     var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
 
     // Compute the camera matrix using look at.
-    var cameraPosition = [0.0, -20.0, 200.0];
-    var target = [0.0, 0.0, 0.0];
-    var up = [0.0, 0.0, 1.0];
     var cameraMatrix = utils.LookAt(cameraPosition, target, up);
     var viewMatrix = utils.invertMatrix(cameraMatrix);
 
@@ -357,83 +333,178 @@ function getCanvas() {
 
 //endregion
 
+
+function addBlock(){
+    var x = parseInt(document.getElementById("newX").value);
+    var y = parseInt(document.getElementById("newY").value);
+    var z = 0;
+    var type = parseInt(document.getElementById("newType").value);
+    var translateFactor = settings.translateFactor
+    var translateOffset = GetTranslateByType(type);
+    var scaleFactor = GetScaleByType(type);
+
+    const node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor + translateOffset[0],
+                y * translateFactor + translateOffset[1],
+                0 + translateOffset[2]),
+            utils.MakeScaleMatrix(
+                scaleFactor[0],
+                scaleFactor[1],
+                scaleFactor[2]));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[type].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[type]
+    };
+    node.setParent(mapSpace);
+    objects.push(node);
+}
+
 /**
  * EVENT LISTENERS
  */
 
-var settingObj = function (max, positiveOnly, value){
-    this.id = null;
-    this.max=max;
-    this.positiveOnly=positiveOnly;
-    this.value=value;
-    this.locked = false;
+function setGuiListeners(){
+    document.getElementById("createButton").addEventListener("click", function (e){
+        addBlock();
+    });
 }
 
-settingObj.prototype.init = function(id){
-    this.id = id;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-    document.getElementById(id+'_slider').value = document.getElementById(id+'_slider').max * this.value/this.max;
-}
-
-settingObj.prototype.onSliderInput = function(slider_norm_value, id){
-    this.value = slider_norm_value * this.max;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-}
-
-settingObj.prototype.lock= function(){
-    this.locked = true;
-    document.getElementById(this.id+'_value').innerHTML=" -";
-    document.getElementById(this.id+'_slider').disabled=true;
-}
-
-const gui_settings = {
-    'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
-    'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
-    'cameraZ': new settingObj(50, false, settings.cameraPosition[2]),
-    'fieldOfView': new settingObj(180, true, settings.fieldOfView),
-    'dirTheta': new settingObj(180, true, settings.directLightTheta),
-    'dirPhi': new settingObj(180, false, settings.directLightPhi),
-    'ambientLight': new settingObj(1, true, settings.ambientLight[0])
-}
-
-function onSliderChange(slider_value, id) {
-    let slider_norm_value = slider_value / document.getElementById(id + '_slider').max;
-    gui_settings[id].onSliderInput(slider_norm_value, id);
-    if (!gui_settings['cameraX'].locked) {
-        settings.cameraPosition[0] = gui_settings['cameraX'].value;
-        settings.cameraPosition[1] = gui_settings['cameraY'].value;
-        settings.cameraPosition[2] = gui_settings['cameraZ'].value;
+function GetTranslateByType(type){
+    if(type === 0){
+        return settings.translateOffsetBrick
     }
-    settings.fieldOfView = gui_settings['fieldOfView'].value;
-    settings.ambientLight[0] = gui_settings['ambientLight'].value;
-    settings.ambientLight[1] = gui_settings['ambientLight'].value;
-    settings.ambientLight[2] = gui_settings['ambientLight'].value;
-    settings.directLightTheta = gui_settings['dirTheta'].value;
-    settings.directLightPhi = gui_settings['dirPhi'].value;
+    if(type === 1){
+        return settings.translateOffsetHedge
+    }
+    if(type === 2){
+        return settings.translateOffsetCloud
+    }
+    if(type === 3){
+        return settings.translateOffsetCylinderIsland
+    }
+    if(type === 4){
+        return settings.translateOffsetMountain
+    }
+    if(type === 5){
+        return settings.translateOffsetRock
+    }
+    if(type === 6){
+        return settings.translateOffsetSquareIsland
+    }
+    if(type === 7){
+        return settings.translateOffsetTree
+    }
 }
 
-/*function setGuiListeners(){
-    document.getElementById("cameraX_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraX');
-    }, false);
-    document.getElementById("cameraY_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraY');
-    }, false);
-    document.getElementById("cameraZ_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraZ');
-    }, false);
-    document.getElementById("ambientLight_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'ambientLight');
-    }, false);
-    document.getElementById("dirPhi_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirPhi');
-    }, false);
-    document.getElementById("dirTheta_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirTheta');
-    }, false);
-    document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'fieldOfView');
-    }, false);
-}*/
+function GetScaleByType(type){
+    if(type === 0){
+        return settings.scaleFactorBrick
+    }
+    if(type === 1){
+        return settings.scaleFactorHedge
+    }
+    if(type === 2){
+        return settings.scaleFactorCloud
+    }
+    if(type === 3){
+        return settings.scaleFactorCylinderIsland
+    }
+    if(type === 4){
+        return settings.scaleFactorMountain
+    }
+    if(type === 5){
+        return settings.scaleFactorRock
+    }
+    if(type === 6){
+        return settings.scaleFactorSquareIsland
+    }
+    if(type === 7){
+        return settings.scaleFactorTree
+    }
+}
+
+function onKeyDown(event){
+    switch (event.keyCode){
+        case 87: //W
+            break;
+        case 65: //A
+            cameraPosition[0] += settings.translateFactor;
+            target[0] += settings.translateFactor;
+            break;
+        case 83: //S
+            break;
+        case 68: //D
+            cameraPosition[0] -= settings.translateFactor;
+            target[0] -= settings.translateFactor;
+            break;
+        case 32: //SPACEBAR
+            break;
+        case 37: //LEFT ARROW
+            break;
+        case 38: //UP ARROW
+            break;
+        case 39: //RIGHT ARROW
+            break;
+        case 40: //DOWN ARROW
+            break;
+        case 86: //V -> change view?
+            break;
+        case 70: //F -> full screen?
+            break;
+        case 27: //ESC
+            break;
+        case 71: //G
+            break;
+        case 82: //R
+            break;
+        case 73: //I
+            break;
+        case 66: //B
+            break;
+        case 85: //U
+            break;
+        case 79: //O
+            break;
+    }
+}
+
+function onKeyUp(event){
+    switch (event.keyCode){
+        case 87: //W
+            break;
+        case 65: //A
+            break;
+        case 83: //S
+            break;
+        case 68: //D
+            break;
+        case 32: //SPACEBAR
+            break;
+        case 37: //LEFT ARROW
+            break;
+        case 38: //UP ARROW
+            break;
+        case 39: //RIGHT ARROW
+            break;
+        case 40: //DOWN ARROW
+            break;
+        case 71: //G
+            break;
+        case 82: //R
+            break;
+        case 73: //I
+            break;
+        case 66: //B
+            break;
+        case 85: //U
+            break;
+        case 79: //O
+            break;
+    }
+}
 
 window.onload = init();

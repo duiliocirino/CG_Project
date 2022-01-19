@@ -9,7 +9,21 @@ var settings = {
     assetDir:null,
     skyboxDir: null,
     /** variables  */
-    scaleFactor: 2.5,
+    playerColliderX: 1,
+    playerColliderY: 1,
+    blocksColliderX: 1,
+    blocksColliderY: 1,
+    hedgesColliderX: 1,
+    hedgesColliderY: 1,
+
+    translateFactor: 19,
+    translateOffsetBrick: [0, -5, 0],
+    translateOffsetCylinderIsland: [0, -2, 0],
+
+    translateOffsetSquareIsland: [0, 0, 0],
+    scaleFactorSquareIsland: 1,
+    scaleFactorBrick: [0.87, 0.87, 0.87],
+    scaleFactorCylinderIsland: [1, 0.5, 1],
 
     /** camera parameters */
     cameraGamePosition: [0.0, 7.0, 4.0],
