@@ -11,10 +11,10 @@ var settings = {
     /** variables  */
     playerColliderX: 1,
     playerColliderY: 1,
-    blocksColliderX: 1,
-    blocksColliderY: 1,
-    hedgesColliderX: 1,
-    hedgesColliderY: 1,
+    blocksColliderX: 14,
+    blocksColliderY: 14,
+    hedgesColliderX: 10,
+    hedgesColliderY: 10,
 
     translateFactor: 19,
     translateOffsetBrick: [0, -5, 0],

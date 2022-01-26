@@ -44,10 +44,16 @@ var wvpMatrixLocation;
 var positionMatrixLocation;
 var normalMatrixLocation;
 
+var ambientLightHandle;
 var textureUniformLocation;
+var shinessHandle;
+var cameraPositionHandle;
+var pointLightPositionHandle;
+var pointLightColorHandle;
+var pointLightTargetHandle;
+var pointLightDecayHandle;
 var directLightColorHandle;
 var directLightDirectionHandle;
-var ambientLightHandle;
 
 
 //Parameters for Camera
@@ -74,7 +80,9 @@ var horizontalSpeedCap = 5;
 var verticalSpeedCap = 5;
 var horizontalAcceleration = 0;
 var verticalAcceleration = 0;
+var gravity = -0.1;
 var deceleration = 0.5; //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
+var jumping = false;
 
 
 //EasterEgg
@@ -160,10 +168,15 @@ function getAttributesAndUniformLocation(){
     normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
 
     textureUniformLocation = gl.getUniformLocation(program, "u_texture");
-
-    directLightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-    directLightColorHandle = gl.getUniformLocation(program, 'lightColor');
+    cameraPositionHandle = gl.getUniformLocation(program, "u_cameraPos");
+    pointLightPositionHandle = gl.getUniformLocation(program, "u_pointLightPos");
+    pointLightColorHandle = gl.getUniformLocation(program, "u_pointLightColor");
+    pointLightTargetHandle = gl.getUniformLocation(program, "u_pointLightTarget");
+    pointLightDecayHandle = gl.getUniformLocation(program, "u_pointLightDecay");
+    directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
+    directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
     ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+    shinessHandle = gl.getUniformLocation(program, "u_shininess");
 }
 
 function createVaos(){
@@ -226,7 +239,7 @@ function sceneGraphDefinition(){
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
 
     var playerNode = new Node();
-    playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 20, 0), utils.MakeScaleMatrix(4))
+    playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 25, 0), utils.MakeScaleMatrix(4))
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -273,8 +286,13 @@ function sceneGraphDefinition(){
 //endregion
 
 function updatePlayerPosition() {
+    let collisions;
     if (horizontalSpeed < horizontalSpeedCap && horizontalSpeed > -horizontalSpeedCap){
         horizontalSpeed = horizontalSpeed + horizontalAcceleration*deltaTime/1000*deceleration;
+    }
+    if(verticalSpeed < verticalSpeedCap && verticalSpeed > -verticalSpeedCap){
+        verticalSpeed = verticalSpeed + (verticalAcceleration + gravity)*deltaTime/1000*deceleration;
+        verticalAcceleration += gravity;
     }
     if(horizontalSpeed>= horizontalSpeedCap){
         horizontalSpeed = horizontalSpeedCap;
@@ -282,7 +300,21 @@ function updatePlayerPosition() {
     if(horizontalSpeed <= -horizontalSpeedCap){
         horizontalSpeed = - horizontalSpeedCap;
     }
-    objects[0].localMatrix = utils.multiplyMatrices(objects[0].localMatrix, utils.MakeTranslateMatrix(horizontalSpeed, 0, 0));
+    if(verticalSpeed>= verticalSpeedCap){
+        verticalSpeed = verticalSpeedCap;
+    }
+    if(verticalSpeed <= -verticalSpeedCap){
+        verticalSpeed = - verticalSpeedCap;
+    }
+    collisions = checkCollisions(objects[0].localMatrix, utils.multiplyMatrices(objects[0].localMatrix, utils.MakeTranslateMatrix(horizontalSpeed, verticalSpeed, 0)), objects.slice(1));
+    if(collisions.detected){
+        jumping = false;
+        horizontalSpeed *= collisions.speedMultiplier[0];
+        horizontalAcceleration *= collisions.speedMultiplier[0];
+        verticalSpeed *= collisions.speedMultiplier[1];
+        verticalAcceleration *= collisions.speedMultiplier[1];
+    }
+    objects[0].localMatrix = collisions.position;
 
 }
 
@@ -326,6 +358,12 @@ function drawScene(currentTime){
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
         gl.uniform3fv(directLightColorHandle, settings.directLightColor);
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
@@ -505,7 +543,7 @@ function onKeyDown(event){
             checkEasterEgg(6);
             break;
         case 32: //SPACEBAR
-            //
+            jumpRoutine();
             break;
         case 37: //LEFT ARROW
             horizontalAcceleration = -0.8;
@@ -607,6 +645,14 @@ function onKeyUp(event){
             break;
     }
 }
+
+ function jumpRoutine(){
+    if(jumping){
+        return;
+    }
+    jumping = true;
+    verticalAcceleration = 5;
+ }
 
 //#region EasterEgg
 

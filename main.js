@@ -6,9 +6,11 @@ import {Node} from "./Engine/Model/Node.js";
 
 // MapHandler instance
 var mapHandler = new MapHandler();
+
 //
 var baseDir;
-//
+
+//Matrices
 var perspectiveMatrix;
 var projectionMatrix;
 var viewMatrix;
@@ -43,10 +45,16 @@ var wvpMatrixLocation;
 var positionMatrixLocation;
 var normalMatrixLocation;
 
+var ambientLightHandle;
 var textureUniformLocation;
+var shinessHandle;
+var cameraPositionHandle;
+var pointLightPositionHandle;
+var pointLightColorHandle;
+var pointLightTargetHandle;
+var pointLightDecayHandle;
 var directLightColorHandle;
 var directLightDirectionHandle;
-var ambientLightHandle;
 
 
 //Parameters for Camera
@@ -135,10 +143,15 @@ function main(){
         normalMatrixLocation = gl.getUniformLocation(program, "nMatrix");
 
         textureUniformLocation = gl.getUniformLocation(program, "u_texture");
-
-        directLightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-        directLightColorHandle = gl.getUniformLocation(program, 'lightColor');
+        cameraPositionHandle = gl.getUniformLocation(program, "u_cameraPos");
+        pointLightPositionHandle = gl.getUniformLocation(program, "u_pointLightPos");
+        pointLightColorHandle = gl.getUniformLocation(program, "u_pointLightColor");
+        pointLightTargetHandle = gl.getUniformLocation(program, "u_pointLightTarget");
+        pointLightDecayHandle = gl.getUniformLocation(program, "u_pointLightDecay");
+        directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
+        directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
         ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
+        shinessHandle = gl.getUniformLocation(program, "u_shininess");
     }
 
     function createVaos(){
@@ -279,6 +292,12 @@ function drawScene(){
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
         gl.uniform3fv(directLightColorHandle, settings.directLightColor);
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 

@@ -30,7 +30,7 @@ class Object{
  * @param playerNextPos the attempted new player position: (the local matrix)
  * @param objects the objects in the scene (without the player)
  * TODO: CHECK IF PLAYER IS ALWAYS THE FIRST IN CASE PASS THE OBJECTS WITHOUT THE PLAYER. IMPORTANT!!!!!!!!!
- * @returns {{detected: boolean, isHedge: boolean, position: localMatrix}}
+ * @returns {{detected: boolean, speedMultiplier: [xMult, yMult], isHedge: boolean, position: localMatrix}}
  */
 function checkCollisions(playerCurrPos, playerNextPos, objects){
     let detected = false;
@@ -38,8 +38,8 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
     let isHedge = false;
     let result = {position: [0, 0], speedMultiplier: [1, 1]}
 
-    var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[0]), getPlayerRangeY(playerCurrPos[1]))
-    var newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[0]), getPlayerRangeY(playerNextPos[1]))
+    var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[3]), getPlayerRangeY(playerCurrPos[7]))
+    var newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[3]), getPlayerRangeY(playerNextPos[7]))
 
     // CHECK FOR COLLISIONS
     let collidingObjects = checkSquareCollision(newPlayer, objects);
@@ -53,7 +53,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
             if(object.isHedge)
                 isHedge = true;
         })
-        if(isHedge) return {detected: detected, position: playerNextPos, isHedge: isHedge}
+        if(isHedge) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge}
 
         // IF NOT AN HEDGE
         result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
@@ -82,7 +82,7 @@ function getPlayerRangeX(playerX) {
  * @returns {(number|*)[]}
  */
 function getPlayerRangeY(playerY) {
-    return [playerY - settings.playerColliderY, playerY - settings.playerColliderY];
+    return [playerY - settings.playerColliderY, playerY + settings.playerColliderY];
 }
 /*
 function checkCircCollision(x0, y0, r, x, y) {
@@ -149,30 +149,34 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
     var speedMultiplier = [1, 1];
 
     objects.forEach(object => {
-        let versor = getVersor(prevPlayer.x, prevPlayer.y, newPlayer.x, newPlayer.y);
+        let versor = getVersor(prevPlayer.objectX, prevPlayer.objectY, newPlayer.objectX, newPlayer.objectY);
         var face = getCollidingFace(object, newPlayer, versor);
         var tempX;
         var tempY;
-        let rect = getRect();
+        let rect = getRect(prevPlayer.objectX, prevPlayer.objectY, newPlayer.objectX, newPlayer.objectY);
 
         if(face === "down"){
-            tempY = object.rangeY[0];
-            tempX = getXgivenY(tempY, rect);
+            tempY = object.rangeY[0] - settings.playerColliderY;
+            tempX = newPlayer.objectX;
+            //tempX = getXgivenY(tempY, rect);
             speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "up"){
-            tempY = object.rangeY[1];
-            tempX = getXgivenY(tempY, rect);
+            tempY = object.rangeY[1] + settings.playerColliderY;
+            tempX = newPlayer.objectX;
+            //tempX = getXgivenY(tempY, rect);
             speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "left"){
-            tempX = object.rangeX[0];
-            tempY = getYgivenX(tempX, rect);
+            tempX = object.rangeX[0] - settings.playerColliderX;
+            tempY = newPlayer.objectY;
+            //tempY = getYgivenX(tempX, rect);
             speedMultiplier = [0, speedMultiplier[1]];
         }
         else if(face === "right") {
-            tempX = object.rangeX[1];
-            tempY = getYgivenX(tempX, rect);
+            tempX = object.rangeX[1] + settings.playerColliderX;
+            tempY = newPlayer.objectY;
+            //tempY = getYgivenX(tempX, rect);
             speedMultiplier = [0, speedMultiplier[1]];
         }
         else console.log("Something went wrong with collidingFace or face.\n" + "It was object: " + object.toString());
@@ -190,7 +194,7 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
  */
 function getVersor(prevPlayerX, prevPlayerY, newPlayerX, newPlayerY){
     var numbers;
-    numbers = [Math.sign(prevPlayerX - newPlayerX), Math.sign(prevPlayerY - prevPlayerY)];
+    numbers = [Math.sign(newPlayerX - prevPlayerX), Math.sign(newPlayerY - prevPlayerY)];
     return numbers;
 }
 
@@ -222,7 +226,7 @@ function getCollidingFace(object, player, versor){
             let yVal = player.rangeY[0] - object.rangeY[1];
             if(xVal < yVal) return "left";
         }
-        else{
+        else if(versor[1] < 0){
             let xVal = object.rangeX[1] - player.rangeX[0];
             let yVal = player.rangeY[1] - object.rangeY[0];
             if(xVal < yVal) return "right";
@@ -235,7 +239,7 @@ function getCollidingFace(object, player, versor){
             let yVal = object.rangeY[1] - player.rangeY[0];
             if(xVal < yVal) return "left";
         }
-        else{
+        else if(versor[0] < 0){
             let xVal = object.rangeX[1] - player.rangeX[0];
             let yVal = object.rangeY[1] - player.rangeY[0];
             if(xVal < yVal) return "right";
