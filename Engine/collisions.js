@@ -26,18 +26,19 @@ class Object{
 
 /**
  * This method checks if the player is colliding with something and returns the right new position.
- * @param playerCurrPos the former player position: Array[x, y] (from the local matrix)
- * @param playerNextPos the attempted new player position: Array[x, y] (from the local matrix)
+ * @param playerCurrPos the former player position: (the local matrix)
+ * @param playerNextPos the attempted new player position: (the local matrix)
  * @param objects the objects in the scene (without the player)
  * TODO: CHECK IF PLAYER IS ALWAYS THE FIRST IN CASE PASS THE OBJECTS WITHOUT THE PLAYER. IMPORTANT!!!!!!!!!
- * @returns {{detected: boolean, isHedge: boolean, position: [x, y]}}
+ * @returns {{detected: boolean, isHedge: boolean, position: localMatrix}}
  */
 function checkCollisions(playerCurrPos, playerNextPos, objects){
     let detected = false;
     let position = [];
     let isHedge = false;
-    var oldPlayer = new Player(playerCurrPos[0], playerCurrPos[1], getPlayerRangeX(playerCurrPos[0]), getPlayerRangeY(playerCurrPos[1]))
-    var newPlayer = new Player(playerNextPos[0], playerNextPos[1], getPlayerRangeX(playerNextPos[0]), getPlayerRangeY(playerNextPos[1]))
+
+    var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[0]), getPlayerRangeY(playerCurrPos[1]))
+    var newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[0]), getPlayerRangeY(playerNextPos[1]))
 
     // CHECK FOR COLLISIONS
     let collidingObjects = checkSquareCollision(newPlayer, objects);
@@ -54,12 +55,15 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
         if(isHedge) return {detected: detected, position: playerNextPos, isHedge: isHedge}
 
         // IF NOT AN HEDGE
-        position = calculateNewPosition(oldPlayer, newPlayer, collidingObjects)
+        var result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
+        position = playerNextPos;
+        position[3] = result.position[0];
+        position[7] = result.position[1];
     }
     // NO COLLISION => TELL THE PLAYER THE POSITION CALCULATED WAS RIGHT
     else position = playerNextPos;
 
-    return {detected: detected, position: position, isHedge: isHedge}
+    return {detected: detected, speedMultiplier: result.speedMultiplier, position: position, isHedge: isHedge}
 }
 
 /**
@@ -141,6 +145,7 @@ function getObjectRangeY(isHedge, objectY){
 function calculateNewPosition(prevPlayer, newPlayer, objects){
     var x = [];
     var y = [];
+    var speedMultiplier = [1, 1];
 
     objects.forEach(object => {
         let versor = getVersor(prevPlayer.x, prevPlayer.y, newPlayer.x, newPlayer.y);
@@ -152,18 +157,22 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
         if(face === "down"){
             tempY = object.rangeY[0];
             tempX = getXgivenY(tempY, rect);
+            speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "up"){
             tempY = object.rangeY[1];
             tempX = getXgivenY(tempY, rect);
+            speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "left"){
             tempX = object.rangeX[0];
             tempY = getYgivenX(tempX, rect);
+            speedMultiplier = [0, speedMultiplier[1]];
         }
         else if(face === "right") {
             tempX = object.rangeX[1];
             tempY = getYgivenX(tempX, rect);
+            speedMultiplier = [0, speedMultiplier[1]];
         }
         else console.log("Something went wrong with collidingFace or face.\n" + "It was object: " + object.toString());
 
@@ -171,8 +180,7 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
         y.push(tempY);
     })
 
-
-    return [x[0], y[0]];
+    return {position:[x[0], y[0]], speedMultiplier: speedMultiplier};
 }
 
 /**
