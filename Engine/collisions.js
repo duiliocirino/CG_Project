@@ -36,6 +36,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
     let detected = false;
     let position = [];
     let isHedge = false;
+    let result = {position: [0, 0], speedMultiplier: [1, 1]}
 
     var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[0]), getPlayerRangeY(playerCurrPos[1]))
     var newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[0]), getPlayerRangeY(playerNextPos[1]))
@@ -55,7 +56,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
         if(isHedge) return {detected: detected, position: playerNextPos, isHedge: isHedge}
 
         // IF NOT AN HEDGE
-        var result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
+        result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
         position = playerNextPos;
         position[3] = result.position[0];
         position[7] = result.position[1];
