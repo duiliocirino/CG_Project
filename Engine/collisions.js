@@ -133,7 +133,7 @@ function getObjectRangeX(isHedge, objectX){
 function getObjectRangeY(isHedge, objectY){
     if(isHedge)
         return [objectY - settings.hedgesColliderX + settings.translateFactor, objectY + settings.hedgesColliderX + settings.translateFactor];
-    return [objectY - settings.blocksColliderY, objectY + settings.blocksColliderY];
+    return [objectY, objectY + settings.blocksColliderY];
 }
 
 /**

@@ -11,19 +11,19 @@ var settings = {
     /** variables  */
     playerColliderX: 1,
     playerColliderY: 1,
-    blocksColliderX: 14,
-    blocksColliderY: 14,
+    blocksColliderX: 8.5,
+    blocksColliderY: 17,
     hedgesColliderX: 10,
     hedgesColliderY: 10,
 
-    translateFactor: 19,
-    translateOffsetBrick: [0, -5, 0],
-    translateOffsetCylinderIsland: [0, -2, 0],
+    translateFactor: 17,
+    translateOffsetBrick: [0, -3.2, 0],
+    translateOffsetCylinderIsland: [0, 0, 0],
 
     translateOffsetSquareIsland: [0, 0, 0],
-    scaleFactorSquareIsland: 1,
-    scaleFactorBrick: [0.87, 0.87, 0.87],
-    scaleFactorCylinderIsland: [1, 0.5, 1],
+    scaleFactorSquareIsland: [1, 1.18, 1],
+    scaleFactorBrick: [0.77, 0.77, 0.77],
+    scaleFactorCylinderIsland: [1, 0.805, 1],
 
 
     //Player movement values
@@ -65,6 +65,60 @@ var settings = {
     backgroundColor: [0.8, 0.8, 0.8, 1.0],
 
     useEnvironment:true,
+
+    GetTranslateByType: function(type) {
+        if (type === 0) {
+            return settings.translateOffsetBrick
+        }
+        if (type === 1) {
+            return settings.translateOffsetHedge
+        }
+        if (type === 2) {
+            return settings.translateOffsetCloud
+        }
+        if (type === 3) {
+            return settings.translateOffsetCylinderIsland
+        }
+        if (type === 4) {
+            return settings.translateOffsetMountain
+        }
+        if (type === 5) {
+            return settings.translateOffsetRock
+        }
+        if (type === 6) {
+            return settings.translateOffsetSquareIsland
+        }
+        if (type === 7) {
+            return settings.translateOffsetTree
+        }
+    },
+
+    GetScaleByType: function(type) {
+        if (type === 0) {
+            return settings.scaleFactorBrick
+        }
+        if (type === 1) {
+            return settings.scaleFactorHedge
+        }
+        if (type === 2) {
+            return settings.scaleFactorCloud
+        }
+        if (type === 3) {
+            return settings.scaleFactorCylinderIsland
+        }
+        if (type === 4) {
+            return settings.scaleFactorMountain
+        }
+        if (type === 5) {
+            return settings.scaleFactorRock
+        }
+        if (type === 6) {
+            return settings.scaleFactorSquareIsland
+        }
+        if (type === 7) {
+            return settings.scaleFactorTree
+        }
+    }
 }
 
 //Definition of the structure used as scene graph (example taken from webGLTutorial2)

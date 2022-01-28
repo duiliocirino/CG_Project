@@ -586,6 +586,18 @@ var utils={
 		return out;
 	},
 
+	MakeScaleMatrixXYZ: function(sx, sy, sz) {
+		// Create a transform matrix for un-proportional scale
+
+		var out = this.identityMatrix();
+
+		out[0] = sx;
+		out[5] = sy;
+		out[10] = sz;
+
+		return out;
+	},
+
 
 //***Projection Matrix operations
 	MakeWorld: function(tx, ty, tz, rx, ry, rz, s){
@@ -726,5 +738,4 @@ var utils={
 
 		return perspective;
 	}
-
 }

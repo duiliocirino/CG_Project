@@ -224,15 +224,7 @@ function sceneGraphDefinition(){
     map.playableObjects.forEach(function(element){
         const xPos = element.position[0];
         const yPos = element.position[1];
-        const node = new Node();
-        node.localMatrix = utils.MakeTranslateMatrix(xPos,yPos,0);
-        node.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[element.type]
-        };
-        node.setParent(mapSpace);
-        objects.push(node);
+        CreateNode(xPos, yPos, element.type);
     });
 }
 //endregion
@@ -350,15 +342,18 @@ function getCanvas() {
 
 //endregion
 
-
 function addBlock(){
     var x = parseInt(document.getElementById("newX").value);
     var y = parseInt(document.getElementById("newY").value);
-    var z = 0;
     var type = parseInt(document.getElementById("newType").value);
+    CreateNode(x, y, type);
+}
+
+function CreateNode(x, y, type){
+    var z = 0;
     var translateFactor = settings.translateFactor
-    var translateOffset = GetTranslateByType(type);
-    var scaleFactor = GetScaleByType(type);
+    var translateOffset = settings.GetTranslateByType(type);
+    var scaleFactor = settings.GetScaleByType(type);
 
     const node = new Node();
     node.localMatrix =
@@ -367,7 +362,7 @@ function addBlock(){
                 x * translateFactor + translateOffset[0],
                 y * translateFactor + translateOffset[1],
                 0 + translateOffset[2]),
-            utils.MakeScaleMatrix(
+            utils.MakeScaleMatrixXYZ(
                 scaleFactor[0],
                 scaleFactor[1],
                 scaleFactor[2]));
@@ -388,60 +383,6 @@ function setGuiListeners(){
     document.getElementById("createButton").addEventListener("click", function (e){
         addBlock();
     });
-}
-
-function GetTranslateByType(type){
-    if(type === 0){
-        return settings.translateOffsetBrick
-    }
-    if(type === 1){
-        return settings.translateOffsetHedge
-    }
-    if(type === 2){
-        return settings.translateOffsetCloud
-    }
-    if(type === 3){
-        return settings.translateOffsetCylinderIsland
-    }
-    if(type === 4){
-        return settings.translateOffsetMountain
-    }
-    if(type === 5){
-        return settings.translateOffsetRock
-    }
-    if(type === 6){
-        return settings.translateOffsetSquareIsland
-    }
-    if(type === 7){
-        return settings.translateOffsetTree
-    }
-}
-
-function GetScaleByType(type){
-    if(type === 0){
-        return settings.scaleFactorBrick
-    }
-    if(type === 1){
-        return settings.scaleFactorHedge
-    }
-    if(type === 2){
-        return settings.scaleFactorCloud
-    }
-    if(type === 3){
-        return settings.scaleFactorCylinderIsland
-    }
-    if(type === 4){
-        return settings.scaleFactorMountain
-    }
-    if(type === 5){
-        return settings.scaleFactorRock
-    }
-    if(type === 6){
-        return settings.scaleFactorSquareIsland
-    }
-    if(type === 7){
-        return settings.scaleFactorTree
-    }
 }
 
 function onKeyDown(event){

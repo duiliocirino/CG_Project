@@ -28,6 +28,7 @@ var meshes = [];
 //OBJECTS
 var objects = []; // list of objects to be rendered
 var worldSpace;
+var mapSpace;
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -226,14 +227,15 @@ function sceneGraphDefinition(){
 
     var map = new Map("First map");
     map.addPlayable(new Block(0,0, 6));
-    map.addPlayable(new Block(20,0, 6));
-    map.addPlayable(new Block(40,20, 0));
-    map.addPlayable(new Block(60,20, 0));
-    map.addPlayable(new Block(80,0, 6));
-    map.addPlayable(new Block(100,0, 6));
-    map.addPlayable(new Block(120,20, 0));
-    map.addPlayable(new Block(140,20, 0));
-    map.addPlayable(new Block(160,0, 6));
+    map.addPlayable(new Block(1,1, 6));
+    map.addPlayable(new Block(1,3, 6));
+    map.addPlayable(new Block(2,2, 0));
+    map.addPlayable(new Block(3,3, 0));
+    map.addPlayable(new Block(4,0, 6));
+    map.addPlayable(new Block(5,0, 6));
+    map.addPlayable(new Block(6,1, 0));
+    map.addPlayable(new Block(7,1, 0));
+    map.addPlayable(new Block(8,0, 6));
 
     worldSpace = new Node();
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
@@ -248,39 +250,13 @@ function sceneGraphDefinition(){
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
 
-    var mapSpace = new Node();
+    mapSpace = new Node();
     mapSpace.setParent(worldSpace);
-
-    /*const pipe = new Node();
-    pipe.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9]
-    };
-    pipe.setParent(mapSpace);
-    objects.push(pipe);
-
-    const pipeBase = new Node();
-    pipeBase.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[10].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[10]
-    };
-    pipeBase.setParent(mapSpace);
-    objects.push(pipeBase);*/
 
     map.playableObjects.forEach(function(element){
         const xPos = element.position[0];
         const yPos = element.position[1];
-        const node = new Node();
-        node.localMatrix = utils.MakeTranslateMatrix(xPos,yPos,0);
-        node.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[element.type]
-        };
-        node.setParent(mapSpace);
-        objects.push(node);
+        CreateNode(xPos, yPos, element.type)
     });
 }
 //endregion
@@ -443,6 +419,32 @@ function getCanvas() {
 }
 
 //endregion
+
+function CreateNode(x, y, type){
+    var z = 0;
+    var translateFactor = settings.translateFactor
+    var translateOffset = settings.GetTranslateByType(type);
+    var scaleFactor = settings.GetScaleByType(type);
+
+    const node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor + translateOffset[0],
+                y * translateFactor + translateOffset[1],
+                0 + translateOffset[2]),
+            utils.MakeScaleMatrixXYZ(
+                scaleFactor[0],
+                scaleFactor[1],
+                scaleFactor[2]));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[type].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[type]
+    };
+    node.setParent(mapSpace);
+    objects.push(node);
+}
 
 
 /**

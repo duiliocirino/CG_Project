@@ -4,12 +4,12 @@
 
     border-radius: 8px;
     margin: auto;
-    height: 16vh;
-    width: 16vh;
+    height: 20vh;
+    width: 24vh;
 
     position: fixed;
     top: 90%;
-    left: 10%;
+    left: 7%;
     transform: translate(-50%, -50%);
 
     text-align: center
