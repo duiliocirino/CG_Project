@@ -80,7 +80,7 @@ var horizontalSpeedCap = settings.horizontalSpeedCap;
 var verticalSpeedCap = settings.verticalSpeedCap;
 var horizontalAcceleration = 0;
 var verticalAcceleration = 0;
-var gravity = settigs.gravity;
+var gravity = settings.gravity;
 var deceleration = settings.deceleration;
 var jumping = false;
 
