@@ -25,6 +25,15 @@ var settings = {
     scaleFactorBrick: [0.87, 0.87, 0.87],
     scaleFactorCylinderIsland: [1, 0.5, 1],
 
+
+    //Player movement values
+    horizontalSpeedCap: 5,
+    verticalSpeedCap: 5,
+    gravity: -0.1,
+    deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
+    jumpHeight: 2,
+
+
     /** camera parameters */
     cameraGamePosition: [0.0, 7.0, 4.0],
     cameraPosition: [0.0, 10.0, 20.0],

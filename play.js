@@ -76,12 +76,12 @@ var deltaTime;
 //parameter for movement
 var horizontalSpeed =  0;
 var verticalSpeed = 0;
-var horizontalSpeedCap = 5;
-var verticalSpeedCap = 5;
+var horizontalSpeedCap = settings.horizontalSpeedCap;
+var verticalSpeedCap = settings.verticalSpeedCap;
 var horizontalAcceleration = 0;
 var verticalAcceleration = 0;
-var gravity = -0.1;
-var deceleration = 0.5; //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
+var gravity = settigs.gravity;
+var deceleration = settings.deceleration;
 var jumping = false;
 
 
@@ -651,7 +651,7 @@ function onKeyUp(event){
         return;
     }
     jumping = true;
-    verticalAcceleration = 5;
+    verticalAcceleration = settings.jumpHeight;
  }
 
 //#region EasterEgg
