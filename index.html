@@ -15,11 +15,24 @@
         <label class="menu_title">Platform Maker</label><br>
         <button id="select_menu_button" class="menu_button">Select Map and Play</button>
         <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button><br>
-        <button id="reset_maps_button" class="menu_button">Reset Maps</button>
+        <button id="maps_menu_button" class="menu_button">Reset Maps</button>
+    </div>
+    <div id="backContainer" class="button_container" hidden>
+        <button onclick="location.href='index.html'">Back</button>
     </div>
     <div id="select" class="menu" hidden>
         <label class="menu_title">Select Map</label><br>
         <table id="maps_table" class="maps_table">
+            <tr>
+                <td>ID</td>
+                <td>Name</td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+    <div id="maps" class="menu" hidden>
+        <label class="menu_title">Select Map</label><br>
+        <table id="maps_reset_table" class="maps_table">
             <tr>
                 <td>ID</td>
                 <td>Name</td>

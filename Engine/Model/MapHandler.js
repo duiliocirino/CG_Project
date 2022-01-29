@@ -31,6 +31,7 @@ export class MapHandler{
         if(!isNaN(map.id)){
             this.maps.splice(this.maps.indexOf(map), 1);
         }
+        localStorage.setItem("maps", JSON.stringify(this.maps));
     }
 
     createMap() {

@@ -345,13 +345,46 @@ function setGuiListeners(){
     // UI
     document.getElementById("select_menu_button").addEventListener("click", goToSelectMenu);
 
-    document.getElementById("reset_maps_button").addEventListener("click", resetMaps);
+    document.getElementById("maps_menu_button").addEventListener("click", goToMapsMenu);
 }
 
 //# region UI events
 
 function resetMaps() {
     mapHandler.resetMaps();
+}
+
+function goToMapsMenu() {
+    let modeMenu = document.getElementById("mode");
+    let mapsMenu = document.getElementById("maps");
+    let backButton = document.getElementById("backContainer");
+
+    addRowsDelete();
+
+    modeMenu.hidden = true;
+    mapsMenu.hidden = false;
+    backButton.hidden = false;
+}
+
+function addRowsDelete(){
+    let maps = mapHandler.getMaps();
+    let i = 1;
+    maps.forEach(function (map){
+        var table = document.getElementById("maps_reset_table");
+
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+
+        row.insertCell(0).innerHTML= map.id;
+        row.insertCell(1).innerHTML= map.name;
+        let playCell = row.insertCell(2);
+        playCell.innerHTML= '<input type="button" value="Delete">'
+        playCell.addEventListener("click", function (e){
+            mapHandler.removeMap(map.id);
+        });
+
+        i++;
+    })
 }
 
 function playSelected(mapId){
@@ -363,14 +396,16 @@ function playSelected(mapId){
 function goToSelectMenu(){
     let modeMenu = document.getElementById("mode");
     let selectMenu = document.getElementById("select");
+    let backButton = document.getElementById("backContainer");
 
-    addRows();
+    addRowsPlay();
 
     modeMenu.hidden = true;
     selectMenu.hidden = false;
+    backButton.hidden = false;
 }
 
-function addRows(){
+function addRowsPlay(){
     let maps = mapHandler.getMaps();
     let i = 1;
     maps.forEach(function (map){
