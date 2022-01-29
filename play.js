@@ -570,8 +570,13 @@ function CreateNode(x, y, type){
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[type],
-        color: [0,0,0,1],
-        isColorPresent: false
+    }
+    if(type === 0){
+        node.drawInfo.color = settings.bricksColor;
+        node.drawInfo.isColorPresent= true;
+    }else{
+        node.drawInfo.color = [0,0,0,1];
+        node.drawInfo.isColorPresent = false;
     };
     node.gameInfo = {
         x: x,
@@ -585,13 +590,14 @@ function CreateNode(x, y, type){
 
 /** creates the clouds and inserts them in the sky space */
 function setClouds(){
-    var z = -40;
+
     var translateFactor = settings.translateFactor
     var translateOffset = settings.GetTranslateByType(2);
 
-    let cloudNumber = Math.ceil(Math.random()*10);
+    let cloudNumber = 2 + Math.ceil(Math.random()*8);
 
     for(let i=1; i<=cloudNumber; i++){
+        let z = -30 - Math.ceil(Math.random()*5)*10;
         var scaleFactor = settings.GetScaleByType(2);
         scaleFactor[0] = 0.5 + Math.random()*3;
 

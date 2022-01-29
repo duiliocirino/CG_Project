@@ -19,7 +19,7 @@ var settings = {
     translateFactor: 17,
     translateOffsetBrick: [0, -3.2, 0],
     translateOffsetHedge: [0, 0, 0],
-    translateOffsetCloud: [0, 70, 0],
+    translateOffsetCloud: [0, 160, 0],
     translateOffsetCylinderIsland: [0, 0, 0],
     translateOffsetSquareIsland: [0, 0, 0],
 
@@ -33,6 +33,7 @@ var settings = {
     /** Objects color */
     playerColor: [0.98, 0.98, 0.98, 1],
     cloudsColor: [0.85, 0.85, 0.85, 0.4],
+    bricksColor: [0.51, 0.11, 0.11, 1],
 
 
     playerScaleFactor: 6,
@@ -107,7 +108,7 @@ var settings = {
     //ambient
     ambientLight: [0.2, 0.2, 0.2],
     //specular
-    shiness: 50,
+    shiness: 100,
 
     /** background */
     backgroundColor: [0.8, 0.8, 0.8, 1.0],
