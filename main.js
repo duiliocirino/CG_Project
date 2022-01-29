@@ -179,8 +179,6 @@ function main(){
 
     function sceneGraphDefinition(){
         var map = new Map("First map");
-        map.addPlayable(new Block(-40,0, 0));
-
         map.addPlayable(new Block(0,0, 6));
         map.addPlayable(new Block(20,0, 6));
         map.addPlayable(new Block(40,20, 0));
@@ -212,6 +210,84 @@ function main(){
             const yPos = element.position[1];
             const node = new Node();
             node.localMatrix = utils.MakeTranslateMatrix(xPos,yPos,0);
+            node.drawInfo = {
+                programInfo: program,
+                bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
+                vertexArray: vao_arr[element.type]
+            };
+            node.setParent(mapSpace);
+            objects.push(node);
+        });
+
+        // START SCREEN
+        var blocks = [];
+        {
+            blocks.push(new Block(15, 0, 0));
+            blocks.push(new Block(15, 10, 0));
+            blocks.push(new Block(15, 20, 0));
+            blocks.push(new Block(15, 30, 0));
+            blocks.push(new Block(15, 40, 0));
+            blocks.push(new Block(15, 50, 0));
+            blocks.push(new Block(15, 60, 0));
+            blocks.push(new Block(15, 70, 0));
+            blocks.push(new Block(15, 80, 0));
+            blocks.push(new Block(15, 90, 0));
+            blocks.push(new Block(15, 100, 0));
+            blocks.push(new Block(25, 100, 0));
+            blocks.push(new Block(35, 100, 0));
+            blocks.push(new Block(45, 100, 0));
+            blocks.push(new Block(55, 100, 0));
+            blocks.push(new Block(65, 100, 0));
+            blocks.push(new Block(75, 100, 0));
+            blocks.push(new Block(85, 100, 0));
+            blocks.push(new Block(95, 100, 0));
+            blocks.push(new Block(105, 100, 0));
+            blocks.push(new Block(115, 100, 0));
+            blocks.push(new Block(125, 100, 0));
+            blocks.push(new Block(135, 100, 0));
+            blocks.push(new Block(145, 100, 0));
+            blocks.push(new Block(155, 100, 0));
+            blocks.push(new Block(165, 100, 0));
+            blocks.push(new Block(175, 100, 0));
+            blocks.push(new Block(185, 100, 0));
+            blocks.push(new Block(185, 90, 0));
+            blocks.push(new Block(185, 80, 0));
+            blocks.push(new Block(185, 70, 0));
+            blocks.push(new Block(185, 60, 0));
+            blocks.push(new Block(185, 50, 0));
+            blocks.push(new Block(185, 40, 0));
+            blocks.push(new Block(185, 30, 0));
+            blocks.push(new Block(185, 20, 0));
+            blocks.push(new Block(185, 10, 0));
+            blocks.push(new Block(185, 0, 0));
+            blocks.push(new Block(175, 0, 0));
+            blocks.push(new Block(165, 0, 0));
+            blocks.push(new Block(155, 0, 0));
+            blocks.push(new Block(145, 0, 0));
+            blocks.push(new Block(135, 0, 0));
+            blocks.push(new Block(125, 0, 0));
+            blocks.push(new Block(115, 0, 0));
+            blocks.push(new Block(105, 0, 0));
+            blocks.push(new Block(95, 0, 0));
+            blocks.push(new Block(85, 0, 0));
+            blocks.push(new Block(75, 0, 0));
+            blocks.push(new Block(65, 0, 0));
+            blocks.push(new Block(55, 0, 0));
+            blocks.push(new Block(45, 0, 0));
+            blocks.push(new Block(35, 0, 0));
+            blocks.push(new Block(25, 0, 0));
+        }
+
+        blocks.forEach(function(element){
+            const xPos = element.position[0];
+            const yPos = element.position[1];
+            const node = new Node();
+            node.localMatrix = utils.multiplyMatrices(
+                utils.MakeRotateXMatrix(5),
+                utils.multiplyMatrices(
+                    utils.MakeTranslateMatrix(xPos,yPos,115),
+                    utils.MakeScaleMatrix(0.5))
+            );
             node.drawInfo = {
                 programInfo: program,
                 bufferLength: meshes[element.type].mesh.indexBuffer.numItems,

@@ -67,7 +67,7 @@ var settings = {
     cameraGamePosition: [0.0, 7.0, 4.0],
     cameraPosition: [0.0, -20, 200.0],
     target: [0.0, 0.0, 0.0],
-    up: [0.0, 0.0, 1.0],
+    up: [0.0, 1.0, 0.0],
     fieldOfView: 60,
 
     /** Camera Parameters Create */
@@ -76,7 +76,7 @@ var settings = {
     createCameraUp: [0.0, 1.0, 0.0],
 
     /** Camera Parameters Play */
-    playCameraPosition: [0.0, 0.0, 200.0],
+    playCameraPosition: [0.0, -20.0, 200.0],
     playCameraTarget: [0.0, 0.0, 0.0],
     playCameraUp: [0.0, 1.0, 0.0],
 
