@@ -18,14 +18,25 @@ var settings = {
 
     translateFactor: 17,
     translateOffsetBrick: [0, -3.2, 0],
+    translateOffsetHedge: [0, 0, 0],
+    translateOffsetCloud: [0, 70, 0],
     translateOffsetCylinderIsland: [0, 0, 0],
-
     translateOffsetSquareIsland: [0, 0, 0],
-    scaleFactorSquareIsland: [1, 1.18, 1],
+
     scaleFactorBrick: [0.77, 0.77, 0.77],
+    scaleFactorHedge: [1, 1, 1],
+    scaleFactorCloud: [1, 1, 1],
     scaleFactorCylinderIsland: [1, 0.805, 1],
+    scaleFactorSquareIsland: [1, 1.18, 1],
+
+
 
     playerScaleFactor: 6,
+    //cloudHeightFactor: 70, //factor that is multiplied to the random number generated for the height of the clouds
+    cloudTranslateFactor: 7, //the horizontal displacement of the clouds from x = 0
+    cloudSpeed: 0.05,
+    cloudsBackDespawnFactor: 180,
+    cloudsFrontRespawnFactor: 350,
 
 
     /**Player movement values*/
@@ -237,24 +248,3 @@ settingObj.prototype.lock= function(){
     document.getElementById(this.id+'_slider').disabled=true;
 }
 
-const gui_settings = {
-    'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
-    'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
-    'cameraZ': new settingObj(50, false, settings.cameraPosition[2]),
-    'fieldOfView': new settingObj(180, true, settings.fieldOfView),
-    'posX': new settingObj(8, false, settings.pointLightPosition[0]),
-    'posY': new settingObj(8, false, settings.pointLightPosition[1]),
-    'posZ': new settingObj(8, false, settings.pointLightPosition[2]),
-    'lightDecay': new settingObj(5, true, settings.pointLightDecay),
-    'lightTarget': new settingObj(20, true, settings.pointLightTarget),
-    'dirTheta': new settingObj(180, true, settings.directLightTheta),
-    'dirPhi': new settingObj(180, false, settings.directLightPhi),
-    'ambientLight': new settingObj(1, true, settings.ambientLight[0]),
-    'shiness': new settingObj(200, true, settings.shiness),
-}
-
-function setDefaultSettings(){
-    for(const [key, value] of Object.entries(gui_settings)){
-        value.init(key);
-    }
-}

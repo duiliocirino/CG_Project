@@ -26,9 +26,13 @@ var vao_arr = []; //data structure containing all the VAO (one for each type of 
 var meshes = [];
 
 //OBJECTS
-var objects = []; // list of objects to be rendered
+var objects = []; // list of objects to be rendered for the playable map
+var backgroundObjects = []; //list of objects to be rendered for the background
+var skyObjects = []; //list of objects to be rendered on the sky
 var worldSpace;
 var mapSpace;
+var skySpace;
+var backgroundSpace;
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -104,11 +108,6 @@ async function init() {
     settings.skyboxDir = baseDir + "Graphics/Env/"; //Skybox directories
 
     getCanvas();
-
-    /* //TODO event listeners
-    document.addEventListener("keydown", onKeyDown, false);
-    document.addEventListener("keyup", onKeyUp, false);
-    */
 
     //Compile and Link Shaders
     //load shaders from file
@@ -242,6 +241,7 @@ function sceneGraphDefinition(){
     playerStartPosition = playerNode.localMatrix;
     startGame();
 
+    //Creation of the playable map
     mapSpace = new Node();
     mapSpace.setParent(worldSpace);
 
@@ -250,6 +250,17 @@ function sceneGraphDefinition(){
         const yPos = element.position[1];
         CreateNode(xPos, yPos, element.type)
     });
+
+    //creation of the clouds
+    skySpace = new Node();
+    skySpace.setParent(worldSpace);
+
+    setClouds();
+
+ //TODO space for background
+
+
+
 }
 //endregion
 
@@ -316,6 +327,23 @@ function updatePlayerPosition() {
     animateCamera(positionDifference);
 }
 
+
+function moveClouds(){
+    skyObjects.forEach(function (object){
+        object.localMatrix = utils.multiplyMatrices(object.localMatrix, utils.MakeTranslateMatrix(- settings.cloudSpeed, 0, 0));
+    });
+}
+
+function checkCloudsPosition(){
+    skyObjects.forEach(function (cloud){
+        if(cloud.localMatrix[3] < objects[0].localMatrix[3] - settings.cloudsBackDespawnFactor){
+            cloud.localMatrix[3] = objects[0].localMatrix[3] + settings.cloudsFrontRespawnFactor;
+        }
+    });
+}
+
+
+
 function invertPlayerModel(){
     var currentPosition = [];
     currentPosition[0] = objects[0].localMatrix[3];
@@ -363,6 +391,10 @@ function drawScene(currentTime){
 
     updatePlayerPosition();
 
+    moveClouds();
+
+    checkCloudsPosition();
+
     worldSpace.updateWorldMatrix();
 
     skyBox.InitializeAndDraw();
@@ -394,6 +426,35 @@ function drawScene(currentTime){
         gl.bindVertexArray(object.drawInfo.vertexArray);
         gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
     });
+
+    skyObjects.forEach(function(object) {
+        gl.useProgram(object.drawInfo.programInfo);
+
+        var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
+        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
+        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
+        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
+        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(textureUniformLocation, 0);
+
+        gl.bindVertexArray(object.drawInfo.vertexArray);
+        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
+    });
+
     requestAnimationFrame(drawScene);
 
 }
@@ -495,6 +556,49 @@ function CreateNode(x, y, type){
     };
     node.setParent(mapSpace);
     objects.push(node);
+}
+
+/** creates the clouds and inserts them in the sky space */
+function setClouds(){
+    var z = -40;
+    var translateFactor = settings.translateFactor
+    var translateOffset = settings.GetTranslateByType(2);
+
+    let cloudNumber = Math.ceil(Math.random()*10);
+
+    for(let i=1; i<=cloudNumber; i++){
+        var scaleFactor = settings.GetScaleByType(2);
+        scaleFactor[0] = 0.5 + Math.random()*3;
+
+        const node = new Node();
+        let y = Math.random();
+
+        node.localMatrix =
+            utils.multiplyMatrices(
+                utils.MakeTranslateMatrix(
+                    i * settings.cloudTranslateFactor * translateFactor + translateOffset[0],
+                    i * y * translateFactor + translateOffset[1],
+                    z + translateOffset[2]),
+                utils.MakeScaleMatrixXYZ(
+                    scaleFactor[0],
+                    scaleFactor[1],
+                    scaleFactor[2]));
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[2].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[2],
+            color: [167, 167, 167]
+        };
+        node.gameInfo = {
+            x: settings.cloudTranslateFactor,
+            y: y,
+            z: z,
+            type: 2
+        };
+        node.setParent(skySpace);
+        skyObjects.push(node);
+    }
+
 }
 
 
