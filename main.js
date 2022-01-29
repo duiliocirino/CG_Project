@@ -341,87 +341,18 @@ function getCanvas() {
  * EVENT LISTENERS
  */
 
-var settingObj = function (max, positiveOnly, value){
-    this.id = null;
-    this.max=max;
-    this.positiveOnly=positiveOnly;
-    this.value=value;
-    this.locked = false;
-}
-
-settingObj.prototype.init = function(id){
-    this.id = id;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-    document.getElementById(id+'_slider').value = document.getElementById(id+'_slider').max * this.value/this.max;
-}
-
-settingObj.prototype.onSliderInput = function(slider_norm_value, id){
-    this.value = slider_norm_value * this.max;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-}
-
-settingObj.prototype.lock= function(){
-    this.locked = true;
-    document.getElementById(this.id+'_value').innerHTML=" -";
-    document.getElementById(this.id+'_slider').disabled=true;
-}
-
-const gui_settings = {
-    'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
-    'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
-    'cameraZ': new settingObj(50, false, settings.cameraPosition[2]),
-    'fieldOfView': new settingObj(180, true, settings.fieldOfView),
-    'dirTheta': new settingObj(180, true, settings.directLightTheta),
-    'dirPhi': new settingObj(180, false, settings.directLightPhi),
-    'ambientLight': new settingObj(1, true, settings.ambientLight[0])
-}
-
-function onSliderChange(slider_value, id) {
-    let slider_norm_value = slider_value / document.getElementById(id + '_slider').max;
-    gui_settings[id].onSliderInput(slider_norm_value, id);
-    if (!gui_settings['cameraX'].locked) {
-        settings.cameraPosition[0] = gui_settings['cameraX'].value;
-        settings.cameraPosition[1] = gui_settings['cameraY'].value;
-        settings.cameraPosition[2] = gui_settings['cameraZ'].value;
-    }
-    settings.fieldOfView = gui_settings['fieldOfView'].value;
-    settings.ambientLight[0] = gui_settings['ambientLight'].value;
-    settings.ambientLight[1] = gui_settings['ambientLight'].value;
-    settings.ambientLight[2] = gui_settings['ambientLight'].value;
-    settings.directLightTheta = gui_settings['dirTheta'].value;
-    settings.directLightPhi = gui_settings['dirPhi'].value;
-}
-
 function setGuiListeners(){
-    document.getElementById("cameraX_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraX');
-    }, false);
-    document.getElementById("cameraY_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraY');
-    }, false);
-    document.getElementById("cameraZ_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraZ');
-    }, false);
-    document.getElementById("ambientLight_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'ambientLight');
-    }, false);
-    document.getElementById("dirPhi_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirPhi');
-    }, false);
-    document.getElementById("dirTheta_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirTheta');
-    }, false);
-    document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'fieldOfView');
-    }, false);
-
     // UI
     document.getElementById("select_menu_button").addEventListener("click", goToSelectMenu);
 
-    document
+    document.getElementById("reset_maps_button").addEventListener("click", resetMaps);
 }
 
 //# region UI events
+
+function resetMaps() {
+    mapHandler.resetMaps();
+}
 
 function playSelected(mapId){
     //let id = obj.parentNode;

@@ -40,6 +40,7 @@ export class MapHandler{
 
     resetMaps() {
         this.maps = [];
+        localStorage.setItem("maps", JSON.stringify(this.maps));
         this.lastMapId = 0;
         localStorage.setItem("lastMapId", "0");
     }

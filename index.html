@@ -14,7 +14,8 @@
     <div id="mode" class="menu" >
         <label class="menu_title">Platform Maker</label><br>
         <button id="select_menu_button" class="menu_button">Select Map and Play</button>
-        <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button>
+        <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button><br>
+        <button id="reset_maps_button" class="menu_button">Reset Maps</button>
     </div>
     <div id="select" class="menu" hidden>
         <label class="menu_title">Select Map</label><br>
@@ -25,52 +26,6 @@
                 <td>&nbsp;</td>
             </tr>
         </table>
-    </div>
-    <div class='gui-container'>
-        <div class='gui-element'>
-            <div class="gui-subgroup-text">Camera</div>
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">cameraX</div>
-            <div id="cameraX_value" class="gui-slider-value">0</div>
-            <input id="cameraX_slider" class="gui-slider" type="range" min="-100" max="100" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">cameraY</div>
-            <div id="cameraY_value" class="gui-slider-value">0</div>
-            <input id="cameraY_slider" class="gui-slider" type="range" min="-100" max="100" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">cameraZ</div>
-            <div id="cameraZ_value" class="gui-slider-value">0</div>
-            <input id="cameraZ_slider" class="gui-slider" type="range" min="-100" max="100" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">fieldOfView</div>
-            <div id="fieldOfView_value" class="gui-slider-value">0</div>
-            <input id="fieldOfView_slider" class="gui-slider" type="range" min="0" max="200" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-subgroup-text">Direct light</div>
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">dirTheta</div>
-            <div id="dirTheta_value" class="gui-slider-value">0</div>
-            <input id="dirTheta_slider" class="gui-slider" type="range" min="0" max="180" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">dirPhi</div>
-            <div id="dirPhi_value" class="gui-slider-value">0</div>
-            <input id="dirPhi_slider" class="gui-slider" type="range" min="-180" max="180" value="0">
-        </div>
-        <div class='gui-element'>
-            <div class="gui-subgroup-text">Ambient</div>
-        </div>
-        <div class='gui-element'>
-            <div class="gui-slider-text">ambientLight</div>
-            <div id="ambientLight_value" class="gui-slider-value">0</div>
-            <input id="ambientLight_slider" class="gui-slider" type="range" min="0" max="100" value="0">
-        </div>
     </div>
 </body>
 </html>
