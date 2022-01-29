@@ -179,6 +179,8 @@ function main(){
 
     function sceneGraphDefinition(){
         var map = new Map("First map");
+        map.addPlayable(new Block(-40,0, 0));
+
         map.addPlayable(new Block(0,0, 6));
         map.addPlayable(new Block(20,0, 6));
         map.addPlayable(new Block(40,20, 0));
