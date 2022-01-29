@@ -783,6 +783,10 @@ function fallOffScreen(){
         repositionPlayer(spawnPosition);
         settings.changeCamera(0); //TODO change number with camera preset passed before playing
     }
+    horizontalSpeed = 0;
+    verticalSpeed = 0;
+    horizontalAcceleration = 0;
+    verticalAcceleration = 0;
 
 }
 
