@@ -10,10 +10,6 @@ var mapHandler = new MapHandler();
 //
 var baseDir;
 
-//Matrices
-var perspectiveMatrix;
-var projectionMatrix;
-var viewMatrix;
 
 var gl;
 
@@ -28,7 +24,15 @@ var meshes = [];
 
 //OBJECTS
 var objects = []; // list of objects to be rendered
+var skyObjects = [];
 var worldSpace;
+var mapSpace;
+var skySpace;
+
+
+//Animation
+var lastFrameTime;
+var deltaTime;
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -40,6 +44,9 @@ var texture;
 var positionAttributeLocation;
 var uvAttributeLocation;
 var normalAttributeLocation;
+
+var colorUniformLocation;
+var isColorPresentBooleanLocation;
 
 var wvpMatrixLocation;
 var positionMatrixLocation;
@@ -137,6 +144,8 @@ function main(){
         positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
         normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
         uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+        colorUniformLocation = gl.getUniformLocation(program, "u_color");
+        isColorPresentBooleanLocation = gl.getUniformLocation(program, "isColorPresent");
 
         wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
         positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
@@ -180,14 +189,14 @@ function main(){
     function sceneGraphDefinition(){
         var map = new Map("First map");
         map.addPlayable(new Block(0,0, 6));
-        map.addPlayable(new Block(20,0, 6));
-        map.addPlayable(new Block(40,20, 0));
-        map.addPlayable(new Block(60,20, 0));
-        map.addPlayable(new Block(80,0, 6));
-        map.addPlayable(new Block(100,0, 6));
-        map.addPlayable(new Block(120,20, 0));
-        map.addPlayable(new Block(140,20, 0));
-        map.addPlayable(new Block(160,0, 6));
+        map.addPlayable(new Block(1,0, 6));
+        map.addPlayable(new Block(2,1, 0));
+        map.addPlayable(new Block(3,1, 0));
+        map.addPlayable(new Block(4,0, 6));
+        map.addPlayable(new Block(5,0, 6));
+        map.addPlayable(new Block(6,1, 0));
+        map.addPlayable(new Block(7,1, 0));
+        map.addPlayable(new Block(8,0, 6));
 
         worldSpace = new Node();
         worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
@@ -197,27 +206,115 @@ function main(){
         playerNode.drawInfo = {
             programInfo: program,
             bufferLength: meshes[8].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[8]
+            vertexArray: vao_arr[8],
+            color: settings.playerColor,
+            isColorPresent: true
         };
         playerNode.setParent(worldSpace);
         objects.push(playerNode);
 
-        var mapSpace = new Node();
+        mapSpace = new Node();
         mapSpace.setParent(worldSpace);
 
         map.playableObjects.forEach(function(element){
             const xPos = element.position[0];
             const yPos = element.position[1];
-            const node = new Node();
-            node.localMatrix = utils.MakeTranslateMatrix(xPos,yPos,0);
-            node.drawInfo = {
-                programInfo: program,
-                bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-                vertexArray: vao_arr[element.type]
-            };
-            node.setParent(mapSpace);
-            objects.push(node);
+            CreateNode(xPos, yPos, element.type)
         });
+
+        //creation of the clouds
+        skySpace = new Node();
+        skySpace.setParent(worldSpace);
+
+        setClouds();
+
+    }
+
+function CreateNode(x, y, type){
+    var z = 0;
+    var translateFactor = settings.translateFactor
+    var translateOffset = settings.GetTranslateByType(type);
+    var scaleFactor = settings.GetScaleByType(type);
+
+    const node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor + translateOffset[0],
+                y * translateFactor + translateOffset[1],
+                0 + translateOffset[2]),
+            utils.MakeScaleMatrixXYZ(
+                scaleFactor[0],
+                scaleFactor[1],
+                scaleFactor[2]));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[type].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[type],
+    }
+    if(type === 0){
+        node.drawInfo.color = settings.bricksColor;
+        node.drawInfo.isColorPresent= true;
+    }else{
+        node.drawInfo.color = [0,0,0,1];
+        node.drawInfo.isColorPresent = false;
+    };
+    node.gameInfo = {
+        x: x,
+        y: y,
+        z: z,
+        type: type
+    };
+    node.setParent(mapSpace);
+    objects.push(node);
+}
+
+//endregion
+
+//# region Clouds
+
+/** creates the clouds and inserts them in the sky space */
+function setClouds(){
+
+    var translateFactor = settings.translateFactor
+    var translateOffset = settings.GetTranslateByType(2);
+
+    let cloudNumber = settings.cloudBaseNumber + Math.ceil(Math.random()*8);
+
+    for(let i=1; i<=cloudNumber; i++){
+        let z = -30 - Math.ceil(Math.random()*5)*10;
+        var scaleFactor = settings.GetScaleByType(2);
+        scaleFactor[0] = 0.5 + Math.random()*3;
+
+        const node = new Node();
+        let y = Math.random();
+
+        node.localMatrix =
+            utils.multiplyMatrices(
+                utils.MakeTranslateMatrix(
+                    i * settings.cloudTranslateFactor * translateFactor + translateOffset[0],
+                    i * y * translateFactor + translateOffset[1],
+                    z + translateOffset[2]),
+                utils.MakeScaleMatrixXYZ(
+                    scaleFactor[0],
+                    scaleFactor[1],
+                    scaleFactor[2]));
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[2].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[2],
+            color: settings.cloudsColor,
+            isColorPresent: true
+
+        };
+        node.gameInfo = {
+            x: settings.cloudTranslateFactor,
+            y: y,
+            z: z,
+            type: 2
+        };
+        node.setParent(skySpace);
+        skyObjects.push(node);
 
         // START SCREEN
         var blocks = [];
@@ -291,15 +388,26 @@ function main(){
             node.drawInfo = {
                 programInfo: program,
                 bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
-                vertexArray: vao_arr[element.type]
+                vertexArray: vao_arr[element.type],
+                color: settings.bricksColor,
+                isColorPresentBooleanLocation: true
             };
             node.setParent(mapSpace);
             objects.push(node);
         });
     }
+
+}
+
 //endregion
 
-function drawScene(){
+
+function drawScene(currentTime){
+    if(!lastFrameTime){
+        lastFrameTime = currentTime;
+    }
+    deltaTime = currentTime - lastFrameTime;
+    lastFrameTime = currentTime;
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -316,6 +424,10 @@ function drawScene(){
 
     var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
 
+    moveClouds();
+
+    checkCloudsPosition();
+
     worldSpace.updateWorldMatrix();
 
     skyBox.InitializeAndDraw();
@@ -329,6 +441,14 @@ function drawScene(){
         gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
         gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation, 0.0);
+        }
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
         gl.uniform1f(shinessHandle, settings.shiness);
@@ -347,8 +467,60 @@ function drawScene(){
         gl.bindVertexArray(object.drawInfo.vertexArray);
         gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
     });
+
+    skyObjects.forEach(function(object) {
+        gl.useProgram(object.drawInfo.programInfo);
+
+        var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
+        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
+        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
+        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation,0.0);
+        }
+
+        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
+        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(textureUniformLocation, 0);
+
+        gl.bindVertexArray(object.drawInfo.vertexArray);
+        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
+    });
+
     requestAnimationFrame(drawScene);
 }
+
+function moveClouds(){
+    skyObjects.forEach(function (object){
+        object.localMatrix = utils.multiplyMatrices(object.localMatrix, utils.MakeTranslateMatrix(- settings.cloudSpeed, 0, 0));
+    });
+}
+
+function checkCloudsPosition(){
+    skyObjects.forEach(function (cloud){
+        if(cloud.localMatrix[3] < objects[0].localMatrix[3] - settings.cloudsBackDespawnFactor){
+            cloud.localMatrix[3] = objects[0].localMatrix[3] + settings.cloudsFrontRespawnFactor;
+        }
+    });
+}
+
 
 //#region Obj Load and Textures
 

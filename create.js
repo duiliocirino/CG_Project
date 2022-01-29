@@ -10,10 +10,6 @@ var mapHandler = new MapHandler();
 var map;
 //
 var baseDir;
-//
-var perspectiveMatrix;
-var projectionMatrix;
-var viewMatrix;
 
 var gl;
 
@@ -28,8 +24,13 @@ var meshes = [];
 
 //OBJECTS
 var objects = []; // list of objects to be rendered
+var backgroundObjects = [];
 var worldSpace;
 var mapSpace;
+var backgroundSpace;
+
+//utility
+var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
 
 //STAGE
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
@@ -41,6 +42,9 @@ var texture;
 var positionAttributeLocation;
 var uvAttributeLocation;
 var normalAttributeLocation;
+
+var colorUniformLocation;
+var isColorPresentBooleanLocation;
 
 var wvpMatrixLocation;
 var positionMatrixLocation;
@@ -134,6 +138,8 @@ function getAttributesAndUniformLocation(){
     positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
     normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
     uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    colorUniformLocation = gl.getUniformLocation(program, "u_color");
+    isColorPresentBooleanLocation = gl.getUniformLocation(program, "isColorPresent");
 
     wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
     positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
@@ -204,14 +210,15 @@ function sceneGraphDefinition(){
 
     var playerNode = new Node();
     playerNode.localMatrix = utils.multiplyMatrices(
-        utils.MakeRotateYMatrix(utils.degToRad(90)),
-        utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(0, 20, 0),
-            utils.MakeScaleMatrix(4)))
+        rotateYaxismatrix,utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(0, 25, 0),
+            utils.MakeScaleMatrix(settings.playerScaleFactor)));
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[8]
+        vertexArray: vao_arr[8],
+        color: settings.playerColor,
+        isColorPresent: true
     };
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
@@ -254,6 +261,14 @@ function drawScene(){
         gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
         gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation, 0.0);
+        }
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
         gl.uniform1f(shinessHandle, settings.shiness);
@@ -379,7 +394,14 @@ function CreateNode(x, y, type){
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[type]
-    };
+    }
+    if(type === 0){
+        node.drawInfo.color = settings.bricksColor;
+        node.drawInfo.isColorPresent= true;
+    }else{
+        node.drawInfo.color = [0,0,0,1];
+        node.drawInfo.isColorPresent = false;
+    }
     node.setParent(mapSpace);
     objects.push(node);
 }

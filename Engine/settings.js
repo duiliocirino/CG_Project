@@ -32,16 +32,17 @@ var settings = {
 
     /** Objects color */
     playerColor: [0.98, 0.98, 0.98, 1],
-    cloudsColor: [0.85, 0.85, 0.85, 0.4],
+    cloudsColor: [1, 1, 1, 1],
     bricksColor: [0.51, 0.11, 0.11, 1],
 
 
     playerScaleFactor: 6,
+    cloudBaseNumber: 4,
     //cloudHeightFactor: 70, //factor that is multiplied to the random number generated for the height of the clouds
     cloudTranslateFactor: 7, //the horizontal displacement of the clouds from x = 0
     cloudSpeed: 0.05,
-    cloudsBackDespawnFactor: 180,
-    cloudsFrontRespawnFactor: 350,
+    cloudsBackDespawnFactor: 280,
+    cloudsFrontRespawnFactor: 450,
 
 
     /**Player movement values*/
@@ -76,7 +77,7 @@ var settings = {
     createCameraUp: [0.0, 1.0, 0.0],
 
     /** Camera Parameters Play */
-    playCameraPosition: [0.0, -20.0, 200.0],
+    playCameraPosition: [0.0, 20.0, 200.0],
     playCameraTarget: [0.0, 0.0, 0.0],
     playCameraUp: [0.0, 1.0, 0.0],
 
@@ -108,7 +109,7 @@ var settings = {
     //ambient
     ambientLight: [0.2, 0.2, 0.2],
     //specular
-    shiness: 100,
+    shiness: 500,
 
     /** background */
     backgroundColor: [0.8, 0.8, 0.8, 1.0],

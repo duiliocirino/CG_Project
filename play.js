@@ -9,10 +9,6 @@ import {Node} from "./Engine/Model/Node.js";
 var mapHandler = new MapHandler();
 //
 var baseDir;
-//
-var perspectiveMatrix;
-var projectionMatrix;
-var viewMatrix;
 
 var gl;
 
@@ -235,7 +231,10 @@ function sceneGraphDefinition(){
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
 
     var playerNode = new Node();
-    playerNode.localMatrix = utils.multiplyMatrices(rotateYaxismatrix,utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 25, 0), utils.MakeScaleMatrix(settings.playerScaleFactor)));
+    playerNode.localMatrix = utils.multiplyMatrices(
+        rotateYaxismatrix,utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(0, 25, 0),
+            utils.MakeScaleMatrix(settings.playerScaleFactor)));
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -594,7 +593,7 @@ function setClouds(){
     var translateFactor = settings.translateFactor
     var translateOffset = settings.GetTranslateByType(2);
 
-    let cloudNumber = 2 + Math.ceil(Math.random()*8);
+    let cloudNumber = settings.cloudBaseNumber + Math.ceil(Math.random()*8);
 
     for(let i=1; i<=cloudNumber; i++){
         let z = -30 - Math.ceil(Math.random()*5)*10;
