@@ -178,27 +178,6 @@ function main(){
     }
 
     function sceneGraphDefinition(){
-        /*worldNode = new Node();
-        var objectNode = new Node();
-        objectNode.localMatrix = utils.MakeScaleMatrix(1,1,1);
-        objectNode.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[6].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[6]
-        };
-        var objectNode2 = new Node();
-        objectNode2.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(-20,0,0), utils.MakeScaleMatrix(1,1,1));
-        objectNode2.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[6].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[6]
-        };
-
-        objectNode.setParent(worldNode);
-        objectNode2.setParent(worldNode)
-        objects.push(objectNode);
-        objects.push(objectNode2);*/
-
         var map = new Map("First map");
         map.addPlayable(new Block(0,0, 6));
         map.addPlayable(new Block(20,0, 6));
@@ -225,24 +204,6 @@ function main(){
 
         var mapSpace = new Node();
         mapSpace.setParent(worldSpace);
-
-        /*const pipe = new Node();
-        pipe.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[9].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[9]
-        };
-        pipe.setParent(mapSpace);
-        objects.push(pipe);
-
-        const pipeBase = new Node();
-        pipeBase.drawInfo = {
-            programInfo: program,
-            bufferLength: meshes[10].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[10]
-        };
-        pipeBase.setParent(mapSpace);
-        objects.push(pipeBase);*/
 
         map.playableObjects.forEach(function(element){
             const xPos = element.position[0];
@@ -453,6 +414,10 @@ function setGuiListeners(){
     document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
         onSliderChange(this.value, 'fieldOfView');
     }, false);
+}
+
+function selectMapEnable(){
+
 }
 
 window.onload = init();

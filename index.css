@@ -32,6 +32,13 @@
     top: 10%;
 }
 
+.maps_table {
+    margin: auto 0;
+    position: relative;
+    top: 20%;
+    left: 30%;
+}
+
 * {
     margin: 0;
     padding: 0;

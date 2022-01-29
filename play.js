@@ -261,6 +261,8 @@ function sceneGraphDefinition(){
 
 function updatePlayerPosition() {
     let collisions;
+    let positionDifference;
+
     if (horizontalSpeed < horizontalSpeedCap && horizontalSpeed > -horizontalSpeedCap){
         horizontalSpeed = horizontalSpeed + horizontalAcceleration*deltaTime/1000*deceleration;
     }
@@ -307,11 +309,17 @@ function updatePlayerPosition() {
         verticalSpeed *= collisions.speedMultiplier[1];
         verticalAcceleration *= collisions.speedMultiplier[1];
     }
+
+    positionDifference = [
+        collisions.position[3] - objects[0].localMatrix[3],
+        collisions.position[7] - objects[0].localMatrix[7],
+        collisions.position[11] - objects[0].localMatrix[11]];
     objects[0].localMatrix = collisions.position;
     if(collisions.position[3] < settings.horizontalBound || collisions.position[7] < settings.verticalBound){
         fallOffScreen();
     }
 
+    animateCamera(positionDifference);
 }
 
 function invertPlayerModel(){
@@ -323,6 +331,17 @@ function invertPlayerModel(){
     objects[0].localMatrix[3] = currentPosition[0];
     objects[0].localMatrix[7] = currentPosition[1];
     objects[0].localMatrix[11] = currentPosition[2];
+}
+
+function animateCamera(positionDifference){
+    settings.playCameraTarget = [
+        objects[0].localMatrix[3],
+        20,
+        objects[0].localMatrix[11]];
+    settings.playCameraPosition = [
+        settings.playCameraPosition[0] + positionDifference[0],
+        settings.playCameraPosition[1],
+        settings.playCameraPosition[2] + positionDifference[2]];
 }
 
 function drawScene(currentTime){
