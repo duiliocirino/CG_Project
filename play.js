@@ -45,6 +45,9 @@ var positionAttributeLocation;
 var uvAttributeLocation;
 var normalAttributeLocation;
 
+var colorUniformLocation;
+var isColorPresentBooleanLocation;
+
 var wvpMatrixLocation;
 var positionMatrixLocation;
 var normalMatrixLocation;
@@ -162,6 +165,8 @@ function getAttributesAndUniformLocation(){
     positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
     normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
     uvAttributeLocation = gl.getAttribLocation(program, "in_uv");
+    colorUniformLocation = gl.getUniformLocation(program, "u_color");
+    isColorPresentBooleanLocation = gl.getUniformLocation(program, "isColorPresent");
 
     wvpMatrixLocation = gl.getUniformLocation(program, "matrix");
     positionMatrixLocation = gl.getUniformLocation(program, "pMatrix");
@@ -234,7 +239,9 @@ function sceneGraphDefinition(){
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[8]
+        vertexArray: vao_arr[8],
+        color: settings.playerColor,
+        isColorPresent: true
     };
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
@@ -409,6 +416,14 @@ function drawScene(currentTime){
         gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
 
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation, 0.0);
+        }
+
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
         gl.uniform1f(shinessHandle, settings.shiness);
         gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
@@ -436,6 +451,14 @@ function drawScene(currentTime){
         gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
         gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
         gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation,0.0);
+        }
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
         gl.uniform1f(shinessHandle, settings.shiness);
@@ -546,7 +569,9 @@ function CreateNode(x, y, type){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[type]
+        vertexArray: vao_arr[type],
+        color: [0,0,0,1],
+        isColorPresent: false
     };
     node.gameInfo = {
         x: x,
@@ -587,7 +612,9 @@ function setClouds(){
             programInfo: program,
             bufferLength: meshes[2].mesh.indexBuffer.numItems,
             vertexArray: vao_arr[2],
-            color: [167, 167, 167]
+            color: settings.cloudsColor,
+            isColorPresent: true
+
         };
         node.gameInfo = {
             x: settings.cloudTranslateFactor,

@@ -30,6 +30,10 @@ var settings = {
     scaleFactorSquareIsland: [1, 1.18, 1],
 
 
+    /** Objects color */
+    playerColor: [0.98, 0.98, 0.98, 1],
+    cloudsColor: [0.85, 0.85, 0.85, 0.4],
+
 
     playerScaleFactor: 6,
     //cloudHeightFactor: 70, //factor that is multiplied to the random number generated for the height of the clouds

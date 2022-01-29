@@ -8,7 +8,7 @@ in vec3 fs_norm;
 
 out vec4 outColor;
 
-uniform mediump float isTexturePresent;
+uniform mediump float isColorPresent;
 
 uniform sampler2D u_color_texture;
 uniform vec4 u_color;
@@ -30,10 +30,11 @@ uniform float u_shininess;
 
 void main() {
   vec4 texelColor;
-  if(isTexturePresent > 0.5){
-    texelColor = texture(u_color_texture, fs_uv);
-  } else {
+  if(isColorPresent > 0.5){
     texelColor = u_color;
+  } else {
+    texelColor = texture(u_color_texture, fs_uv);
+
   }
   vec3 directLightDirNorm = normalize(u_directLightDirection);
   vec3 nNormal = normalize(fs_norm);
