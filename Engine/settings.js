@@ -57,6 +57,16 @@ var settings = {
     playCameraTarget: [0.0, 0.0, 0.0],
     playCameraUp: [0.0, 1.0, 0.0],
 
+    /** Camera presets
+     * each preset needs 3 values for the camera position and the camera up */
+
+    cameraPresets :
+    [
+      [[-10, 5, 200.0],[0.0, 1.0, 0.0]],
+      [[-50, 0.0, 200.0],[0.0, 1.0, 0.0]],
+      [[35, 0.0, 200.0],[0.0, 1.0, 0.0]]
+    ],
+
 
     /** object positions */
     //Insert objects starting positions if necessary
@@ -134,7 +144,26 @@ var settings = {
         if (type === 7) {
             return settings.scaleFactorTree
         }
+    },
+
+    changeCamera: function(cameraMode){
+    if(cameraMode > settings.cameraPresets.size){
+        settings.setCameraValues(0)
+        return
     }
+    settings.setCameraValues(cameraMode)
+    },
+
+    setCameraValues: function(index){
+    settings.playCameraPosition[0] = settings.cameraPresets[index][0][0]
+    settings.playCameraPosition[1] = settings.cameraPresets[index][0][1]
+    settings.playCameraPosition[2] = settings.cameraPresets[index][0][2]
+    settings.playCameraUp[0] = settings.cameraPresets[index][1][0]
+    settings.playCameraUp[1] = settings.cameraPresets[index][1][1]
+    settings.playCameraUp[2] = settings.cameraPresets[index][1][2]
+}
+
+
 }
 
 //Definition of the structure used as scene graph (example taken from webGLTutorial2)

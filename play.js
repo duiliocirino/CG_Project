@@ -781,7 +781,9 @@ function fallOffScreen(){
         deathScreen()
     }else{
         repositionPlayer(spawnPosition);
+        settings.changeCamera(0); //TODO change number with camera preset passed before playing
     }
+
 }
 
 function repositionPlayer(newPosition){
