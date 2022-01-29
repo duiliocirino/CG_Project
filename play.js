@@ -64,6 +64,7 @@ var skyBox = new SkyBox();
 //Parameters for Game Loop
 var lastFrameTime;
 var deltaTime;
+var playerStartPosition = [];
 
 //parameter for movement
 var horizontalSpeed =  0;
@@ -104,8 +105,10 @@ async function init() {
 
     getCanvas();
 
+    /* //TODO event listeners
     document.addEventListener("keydown", onKeyDown, false);
     document.addEventListener("keyup", onKeyUp, false);
+    */
 
     //Compile and Link Shaders
     //load shaders from file
@@ -145,7 +148,7 @@ function main(){
 
     createVaos();
 
-    //setGuiListeners();
+    setGuiListeners();
 
     skyBox.loadEnvironment(gl);
 
@@ -246,7 +249,8 @@ function sceneGraphDefinition(){
     };
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
-    startGame(playerNode.localMatrix);
+    playerStartPosition = playerNode.localMatrix;
+    startGame();
 
     mapSpace = new Node();
     mapSpace.setParent(worldSpace);
@@ -504,93 +508,27 @@ function CreateNode(x, y, type){
 }
 
 
-/**
- * EVENT LISTENERS
- */
-
-var settingObj = function (max, positiveOnly, value){
-    this.id = null;
-    this.max=max;
-    this.positiveOnly=positiveOnly;
-    this.value=value;
-    this.locked = false;
-}
-
-settingObj.prototype.init = function(id){
-    this.id = id;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-    document.getElementById(id+'_slider').value = document.getElementById(id+'_slider').max * this.value/this.max;
-}
-
-settingObj.prototype.onSliderInput = function(slider_norm_value, id){
-    this.value = slider_norm_value * this.max;
-    document.getElementById(id+'_value').innerHTML=this.value.toFixed(2);
-}
-
-settingObj.prototype.lock= function(){
-    this.locked = true;
-    document.getElementById(this.id+'_value').innerHTML=" -";
-    document.getElementById(this.id+'_slider').disabled=true;
-}
-
-const gui_settings = {
-    'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
-    'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
-    'cameraZ': new settingObj(50, false, settings.cameraPosition[2]),
-    'fieldOfView': new settingObj(180, true, settings.fieldOfView),
-    'dirTheta': new settingObj(180, true, settings.directLightTheta),
-    'dirPhi': new settingObj(180, false, settings.directLightPhi),
-    'ambientLight': new settingObj(1, true, settings.ambientLight[0])
-}
-
-function onSliderChange(slider_value, id) {
-    let slider_norm_value = slider_value / document.getElementById(id + '_slider').max;
-    gui_settings[id].onSliderInput(slider_norm_value, id);
-    if (!gui_settings['cameraX'].locked) {
-        settings.cameraPosition[0] = gui_settings['cameraX'].value;
-        settings.cameraPosition[1] = gui_settings['cameraY'].value;
-        settings.cameraPosition[2] = gui_settings['cameraZ'].value;
-    }
-    settings.fieldOfView = gui_settings['fieldOfView'].value;
-    settings.ambientLight[0] = gui_settings['ambientLight'].value;
-    settings.ambientLight[1] = gui_settings['ambientLight'].value;
-    settings.ambientLight[2] = gui_settings['ambientLight'].value;
-    settings.directLightTheta = gui_settings['dirTheta'].value;
-    settings.directLightPhi = gui_settings['dirPhi'].value;
-}
-
 function setGuiListeners(){
-    document.getElementById("cameraX_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraX');
-    }, false);
-    document.getElementById("cameraY_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraY');
-    }, false);
-    document.getElementById("cameraZ_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'cameraZ');
-    }, false);
-    document.getElementById("ambientLight_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'ambientLight');
-    }, false);
-    document.getElementById("dirPhi_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirPhi');
-    }, false);
-    document.getElementById("dirTheta_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'dirTheta');
-    }, false);
-    document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
-        onSliderChange(this.value, 'fieldOfView');
-    }, false);
 
     // UI Listeners
+    document.getElementById("play_again_button").addEventListener("click", function (e){
+        startGame();
+    });
+    /*document.getElementById("back_to_main").addEventListener("click", function (e){
+        addBlock();
+    });*/
+
+    //game Listeners
+    document.addEventListener("keydown", onKeyDown, false);
+    document.addEventListener("keyup", onKeyUp, false);
 }
 
 //# region UI events
 
-function showGameOver(){
+function toggleGameOver(status){
     let gameOverMenu = document.getElementById("game_over_menu");
 
-    gameOverMenu.hidden = false;
+    gameOverMenu.hidden = status;
 }
 
 //endregion
@@ -762,20 +700,27 @@ function swapPlayerModel(){
 
 //# region gameManager
 
-var spawnPosition;
+
 var lives;
 
-function startGame(playerLocalMatrix){
+function startGame(){
     //reset parameters
     lives = settings.startingLives;
-
-    //save player position
-    spawnPosition = playerLocalMatrix;
-
+    objects[0].position = playerStartPosition;
+    horizontalSpeedCap = settings.horizontalSpeedCap;
+    verticalSpeedCap = settings.verticalSpeedCap;
+    toggleGameOver(true);
 }
 
 
 function deathScreen(){
+    horizontalSpeed = 0;
+    verticalSpeed = 0;
+    horizontalAcceleration = 0;
+    verticalAcceleration = 0;
+    horizontalSpeedCap = 0;
+    verticalSpeedCap = 0;
+    toggleGameOver(false);
 
 }
 
@@ -792,7 +737,7 @@ function fallOffScreen(){
     if(lives === 0){
         deathScreen()
     }else{
-        repositionPlayer(spawnPosition);
+        repositionPlayer(playerStartPosition);
         settings.changeCamera(0); //TODO change number with camera preset passed before playing
     }
     horizontalSpeed = 0;
