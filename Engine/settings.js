@@ -9,8 +9,8 @@ var settings = {
     assetDir:null,
     skyboxDir: null,
     /** variables  */
-    playerColliderX: 1,
-    playerColliderY: 1,
+    playerColliderX: 4,
+    playerColliderY: 5,
     blocksColliderX: 8.5,
     blocksColliderY: 17,
     hedgesColliderX: 10,
@@ -33,7 +33,7 @@ var settings = {
     verticalSpeedCap: 5,
     gravity: -0.1,
     deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
-    jumpHeight: 4,
+    jumpHeight: 3,
 
     /** Game parameters */
     startingLives: 5,

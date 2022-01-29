@@ -225,7 +225,7 @@ function sceneGraphDefinition(){
     var map = new Map("First map");
     map.addPlayable(new Block(0,0, 6));
     map.addPlayable(new Block(1,1, 6));
-    map.addPlayable(new Block(1,3, 6));
+    map.addPlayable(new Block(1,6, 6));
     map.addPlayable(new Block(2,2, 0));
     map.addPlayable(new Block(3,3, 0));
     map.addPlayable(new Block(4,0, 6));
@@ -473,6 +473,12 @@ function CreateNode(x, y, type){
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[type]
+    };
+    node.gameInfo = {
+        x: x,
+        y: y,
+        z: z,
+        type: type
     };
     node.setParent(mapSpace);
     objects.push(node);

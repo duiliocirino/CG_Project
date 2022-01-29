@@ -106,8 +106,8 @@ function checkSquareCollision(newPlayer, sceneObjects){
     sceneObjects.forEach(object => {
         let isHedge = false;
         if(object.type === 1) isHedge = true;
-        let objectX = object.localMatrix[3];
-        let objectY = object.localMatrix[7];
+        let objectX = object.gameInfo.x * settings.translateFactor;
+        let objectY = object.gameInfo.y * settings.translateFactor;
         objects.push(new Object(isHedge, object, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));
     })
     var collidingObjects = [];
@@ -144,8 +144,11 @@ function getObjectRangeY(isHedge, objectY){
  * @returns array: position[x, y]
  */
 function calculateNewPosition(prevPlayer, newPlayer, objects){
-    var x = [];
-    var y = [];
+    var x;
+    var y;
+    var xs = [];
+    var ys = [];
+    var faces = [];
     var speedMultiplier = [1, 1];
 
     objects.forEach(object => {
@@ -158,34 +161,54 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
         if(face === "down"){
             tempY = object.rangeY[0] - settings.playerColliderY;
             tempX = newPlayer.objectX;
-            //tempX = getXgivenY(tempY, rect);
             speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "up"){
             tempY = object.rangeY[1] + settings.playerColliderY;
             tempX = newPlayer.objectX;
-            //tempX = getXgivenY(tempY, rect);
             speedMultiplier = [speedMultiplier[0], 0];
         }
         else if(face === "left"){
             tempX = object.rangeX[0] - settings.playerColliderX;
             tempY = newPlayer.objectY;
-            //tempY = getYgivenX(tempX, rect);
             speedMultiplier = [0, speedMultiplier[1]];
         }
         else if(face === "right") {
             tempX = object.rangeX[1] + settings.playerColliderX;
             tempY = newPlayer.objectY;
-            //tempY = getYgivenX(tempX, rect);
             speedMultiplier = [0, speedMultiplier[1]];
         }
         else console.log("Something went wrong with collidingFace or face.\n" + "It was object: " + object.toString());
 
-        x.push(tempX);
-        y.push(tempY);
+        xs.push(tempX);
+        ys.push(tempY);
+        faces.push(face);
     })
 
-    return {position:[x[0], y[0]], speedMultiplier: speedMultiplier};
+    if(faces.length > 1){
+        let i;
+        for(i = 0; i < faces.length; i++){
+            if(faces[i] === "down"){
+                y = ys[i];
+            }
+            else if(faces[i] === "up"){
+                y = ys[i];
+            }
+            else if(faces[i] === "left"){
+                x = xs[i];
+            }
+            else if(faces[i] === "right") {
+                x = xs[i];
+            }
+        }
+    } else{
+        x = xs.pop();
+        y = ys.pop();
+    }
+    if(x === undefined) x = xs.pop();
+    if(y === undefined) y = ys.pop();
+
+    return {position:[x, y], speedMultiplier: speedMultiplier};
 }
 
 /**
@@ -222,14 +245,26 @@ function getYgivenX(x, rect){
 function getCollidingFace(object, player, versor){
     if(versor[1] > 0){
         if(versor[0] > 0){
-            let xVal = object.rangeX[0] - player.rangeX[1];
-            let yVal = player.rangeY[0] - object.rangeY[1];
+            let xVal = player.rangeX[1] - object.rangeX[0];
+            let yVal = player.rangeY[1] - object.rangeY[0];
             if(xVal < yVal) return "left";
         }
         else if(versor[1] < 0){
             let xVal = object.rangeX[1] - player.rangeX[0];
             let yVal = player.rangeY[1] - object.rangeY[0];
             if(xVal < yVal) return "right";
+        }
+        else{
+            if(object.objectX > player.objectX){
+                let xVal = player.rangeX[1] - object.rangeX[0];
+                let yVal = player.rangeY[1] - object.rangeY[0];
+                if(xVal < yVal) return "left";
+            }
+            else if (object.objectX < player.objectX){
+                let xVal = object.rangeX[1] - player.rangeX[0];
+                let yVal = player.rangeY[1] - object.rangeY[0];
+                if(xVal < yVal) return "right";
+            }
         }
         return "down";
     }
@@ -243,6 +278,18 @@ function getCollidingFace(object, player, versor){
             let xVal = object.rangeX[1] - player.rangeX[0];
             let yVal = object.rangeY[1] - player.rangeY[0];
             if(xVal < yVal) return "right";
+        }
+        else{
+            if(object.objectX > player.objectX){
+                let xVal = player.rangeX[1] - object.rangeX[0];
+                let yVal = object.rangeY[1] - player.rangeY[0];
+                if(xVal < yVal) return "left";
+            }
+            else if (object.objectX < player.objectX){
+                let xVal = object.rangeX[1] - player.rangeX[0];
+                let yVal = object.rangeY[1] - player.rangeY[0];
+                if(xVal < yVal) return "right";
+            }
         }
         return "up";
     }
