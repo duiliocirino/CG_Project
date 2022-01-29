@@ -6,6 +6,8 @@ import {Node} from "./Engine/Model/Node.js";
 
 // MapHandler instance
 var mapHandler = new MapHandler();
+// New Map instance
+var map;
 //
 var baseDir;
 //
@@ -194,7 +196,7 @@ function sceneGraphDefinition(){
     objects.push(objectNode);
     objects.push(objectNode2);*/
 
-    var map = new Map("First map");
+    map = new Map("First map");
     map.addPlayable(new Block(0,0, 6));
 
     worldSpace = new Node();
@@ -338,11 +340,22 @@ function getCanvas() {
 
 //endregion
 
+/**
+ * UTILITY FUNCTIONS
+ */
+
 function addBlock(){
-    var x = parseInt(document.getElementById("newX").value);
-    var y = parseInt(document.getElementById("newY").value);
-    var type = parseInt(document.getElementById("newType").value);
+    let x = parseInt(document.getElementById("newX").value);
+    let y = parseInt(document.getElementById("newY").value);
+    let type = parseInt(document.getElementById("newType").value);
+
+    if(map.checkIfOtherBlockIsPresent(x, y)) return;
+
+    map.addPlayable(new Block(x, y, type));
     CreateNode(x, y, type);
+
+    document.getElementById("lastX").textContent = x.toString();
+    document.getElementById("lastY").textContent = y.toString();
 }
 
 function CreateNode(x, y, type){
@@ -371,29 +384,43 @@ function CreateNode(x, y, type){
     objects.push(node);
 }
 
+function saveMap(){
+    mapHandler.storeMap(map);
+}
+
+function undoBlock(){
+    if(map.playableObjects.length === 1) return;
+    map.popPlayable();
+    objects.pop();
+    document.getElementById("lastX").textContent = map.playableObjects[map.playableObjects.length - 1].position[0].toString();
+    document.getElementById("lastY").textContent = map.playableObjects[map.playableObjects.length - 1].position[1].toString();
+}
+
 /**
  * EVENT LISTENERS
  */
 
 function setGuiListeners(){
-    document.getElementById("createButton").addEventListener("click", function (e){
-        addBlock();
-    });
+    document.getElementById("createButton").addEventListener("click", addBlock);
+
+    document.getElementById("undoButton").addEventListener("click", undoBlock);
+
+    document.getElementById("saveButton").addEventListener("click", saveMap);
 }
 
 function onKeyDown(event){
     switch (event.keyCode){
         case 87: //W
-            settings.createCameraPosition[1] -= settings.translateFactor;
-            settings.createCameraTarget[1] -= settings.translateFactor;
+            settings.createCameraPosition[1] += settings.translateFactor;
+            settings.createCameraTarget[1] += settings.translateFactor;
             break;
         case 65: //A
             settings.createCameraPosition[0] -= settings.translateFactor;
             settings.createCameraTarget[0] -= settings.translateFactor;
             break;
         case 83: //S
-            settings.createCameraPosition[1] += settings.translateFactor;
-            settings.createCameraTarget[1] += settings.translateFactor;
+            settings.createCameraPosition[1] -= settings.translateFactor;
+            settings.createCameraTarget[1] -= settings.translateFactor;
             break;
         case 68: //D
             settings.createCameraPosition[0] += settings.translateFactor;
@@ -406,16 +433,16 @@ function onKeyDown(event){
             settings.createCameraTarget[0] -= settings.translateFactor;
             break;
         case 38: //UP ARROW
-            settings.createCameraPosition[1] -= settings.translateFactor;
-            settings.createCameraTarget[1] -= settings.translateFactor;
+            settings.createCameraPosition[1] += settings.translateFactor;
+            settings.createCameraTarget[1] += settings.translateFactor;
             break;
         case 39: //RIGHT ARROW
             settings.createCameraPosition[0] += settings.translateFactor;
             settings.createCameraTarget[0] += settings.translateFactor;
             break;
         case 40: //DOWN ARROW
-            settings.createCameraPosition[1] += settings.translateFactor;
-            settings.createCameraTarget[1] += settings.translateFactor;
+            settings.createCameraPosition[1] -= settings.translateFactor;
+            settings.createCameraTarget[1] -= settings.translateFactor;
             break;
         case 86: //V -> change view?
             break;

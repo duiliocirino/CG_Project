@@ -21,6 +21,11 @@ export class MapHandler{
         }
     }
 
+    resetMaps() {
+        this.maps = [];
+        settings.lastMapId = 0;
+    }
+
     getMaps() {
         return this.maps;
     }

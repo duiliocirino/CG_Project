@@ -4,8 +4,8 @@
 
 export class Map{
     constructor(name) {
-        this.id = this.lastMapId + 1;
-        this.lastMapId += 1;
+        this.id = settings.lastMapId + 1;
+        settings.lastMapId += 1;
         this.playableObjects = [];
         this.decorations = [];
         this.name = name;
@@ -34,6 +34,15 @@ export class Map{
         var oldBlock = this.playableObjects.find(b => b.id === blockId);
         if(!isNaN(oldBlock.id)) oldBlock.setPosition(x ,y);
     }
+
+     checkIfOtherBlockIsPresent(x, y){
+        let bool = false;
+        this.playableObjects.forEach(function (block){
+            if(block.position[0] === x && block.position[1] === y)
+                bool = true;
+        });
+        return bool;
+     }
 
     //TODO: decorations implementation
 }

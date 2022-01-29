@@ -35,10 +35,17 @@ var settings = {
     deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
     jumpHeight: 3,
 
-    /** Game parameters */
+    /**
+     * Game parameters
+     */
     startingLives: 5,
     horizontalBound: -60,
     verticalBound: -100,
+
+    /**
+     * Map values
+     */
+    lastMapId: 0,
 
     /** camera parameters Main */
     cameraGamePosition: [0.0, 7.0, 4.0],

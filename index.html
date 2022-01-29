@@ -11,14 +11,14 @@
 </head>
 <body>
     <canvas id="canvas">Not working canvas</canvas>
-    <div id="mode" class="menu" hidden>
+    <div id="mode" class="menu" >
         <label class="menu_title">Platform Maker</label><br>
-        <button class="menu_button" onclick="location.href='play.html'">Select Map and Play</button>
-        <button class="menu_button" onclick="location.href='create.html'">Create</button>
+        <button id="select_menu_button" class="menu_button">Select Map and Play</button>
+        <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button>
     </div>
-    <div id="select" class="menu">
+    <div id="select" class="menu" hidden>
         <label class="menu_title">Select Map</label><br>
-        <table class="maps_table">
+        <table id="maps_table" class="maps_table">
             <tr>
                 <td>ID</td>
                 <td>Name</td>

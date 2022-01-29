@@ -414,10 +414,52 @@ function setGuiListeners(){
     document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
         onSliderChange(this.value, 'fieldOfView');
     }, false);
+
+    // UI
+    document.getElementById("select_menu_button").addEventListener("click", goToSelectMenu);
+
+    document
 }
 
-function selectMapEnable(){
+//# region UI events
 
+function playSelected(mapId){
+    //let id = obj.parentNode;
+    window.localStorage.setItem("playMap", mapId);
+    window.location.href = "play.html";
 }
+
+function goToSelectMenu(){
+    let modeMenu = document.getElementById("mode");
+    let selectMenu = document.getElementById("select");
+
+    addRows();
+
+    modeMenu.hidden = true;
+    selectMenu.hidden = false;
+}
+
+function addRows(){
+    let maps = mapHandler.getMaps();
+    let i = 1;
+    maps.forEach(function (map){
+        var table = document.getElementById("maps_table");
+
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+
+        row.insertCell(0).innerHTML= map.id;
+        row.insertCell(1).innerHTML= map.name;
+        let playCell = row.insertCell(2);
+        playCell.innerHTML= '<input type="button" value="Play">'
+        playCell.addEventListener("click", function (e){
+            playSelected(map.id);
+        });
+
+        i++;
+    })
+}
+
+//endregion
 
 window.onload = init();

@@ -225,17 +225,7 @@ function sceneGraphDefinition(){
     objects.push(objectNode);
     objects.push(objectNode2);*/
 
-    var map = new Map("First map");
-    map.addPlayable(new Block(0,0, 6));
-    map.addPlayable(new Block(1,1, 6));
-    map.addPlayable(new Block(1,6, 6));
-    map.addPlayable(new Block(2,2, 0));
-    map.addPlayable(new Block(3,3, 0));
-    map.addPlayable(new Block(4,0, 6));
-    map.addPlayable(new Block(5,0, 6));
-    map.addPlayable(new Block(6,1, 0));
-    map.addPlayable(new Block(7,1, 0));
-    map.addPlayable(new Block(8,0, 6));
+    var map = mapHandler.loadMap(parseInt(window.localStorage.getItem("playMap")));
 
     worldSpace = new Node();
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
