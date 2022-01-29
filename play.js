@@ -581,7 +581,19 @@ function setGuiListeners(){
     document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
         onSliderChange(this.value, 'fieldOfView');
     }, false);
+
+    // UI Listeners
 }
+
+//# region UI events
+
+function showGameOver(){
+    let gameOverMenu = document.getElementById("game_over_menu");
+
+    gameOverMenu.hidden = false;
+}
+
+//endregion
 
 //#region Keyboard events
 

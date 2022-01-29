@@ -37,8 +37,8 @@ var settings = {
 
     /** Game parameters */
     startingLives: 5,
-    horizontalBound: -20,
-    verticalBound: -10,
+    horizontalBound: -60,
+    verticalBound: -100,
 
     /** camera parameters Main */
     cameraGamePosition: [0.0, 7.0, 4.0],
