@@ -3,9 +3,8 @@
  */
 
 export class Map{
-    constructor(name) {
-        this.id = settings.lastMapId + 1;
-        settings.lastMapId += 1;
+    constructor(name, lastMapId) {
+        this.id = lastMapId + 1;
         this.playableObjects = [];
         this.decorations = [];
         this.name = name;

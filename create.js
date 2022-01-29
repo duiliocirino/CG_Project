@@ -196,7 +196,7 @@ function sceneGraphDefinition(){
     objects.push(objectNode);
     objects.push(objectNode2);*/
 
-    map = new Map("First map");
+    map = mapHandler.createMap();
     map.addPlayable(new Block(0,0, 6));
 
     worldSpace = new Node();
