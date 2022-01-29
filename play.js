@@ -57,15 +57,6 @@ var directLightColorHandle;
 var directLightDirectionHandle;
 
 
-//Parameters for Camera
-var cx = 4.0;
-var cy = 0.0;
-var cz = 20.0;
-var elevation = 50.0;
-var angle = 0.0;
-var lookRadius = 60.0;
-
-
 //SKYBOX
 var skyBox = new SkyBox();
 
@@ -90,6 +81,12 @@ var jumping = false;
 var easterEgg = 0;
 var keyPressed = false;
 var activePlayerModel = 0;
+
+
+//utility
+var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
+var lookinRight = true;
+
 
 
 
@@ -241,7 +238,7 @@ function sceneGraphDefinition(){
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
 
     var playerNode = new Node();
-    playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 25, 0), utils.MakeScaleMatrix(4))
+    playerNode.localMatrix = utils.multiplyMatrices(rotateYaxismatrix,utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 25, 0), utils.MakeScaleMatrix(settings.playerScaleFactor)));
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -249,6 +246,7 @@ function sceneGraphDefinition(){
     };
     playerNode.setParent(worldSpace);
     objects.push(playerNode);
+    startGame(playerNode.localMatrix);
 
     mapSpace = new Node();
     mapSpace.setParent(worldSpace);
@@ -282,8 +280,27 @@ function updatePlayerPosition() {
     if(verticalSpeed <= -verticalSpeedCap){
         verticalSpeed = - verticalSpeedCap;
     }
-    collisions = checkCollisions(objects[0].localMatrix, utils.multiplyMatrices(objects[0].localMatrix, utils.MakeTranslateMatrix(horizontalSpeed, verticalSpeed, 0)), objects.slice(1));
+    if(horizontalSpeed > 0){
+        if(!lookinRight){
+            lookinRight = true;
+            invertPlayerModel();
+        }
+    }else if(horizontalSpeed < 0){
+        if(lookinRight){
+            lookinRight = false;
+            invertPlayerModel()
+        }
+    }
+    if(lookinRight){
+        collisions = checkCollisions(objects[0].localMatrix, utils.multiplyMatrices(objects[0].localMatrix, utils.MakeTranslateMatrix(-horizontalSpeed, verticalSpeed, 0)), objects.slice(1));
+    }else{
+        collisions = checkCollisions(objects[0].localMatrix, utils.multiplyMatrices(objects[0].localMatrix, utils.MakeTranslateMatrix(horizontalSpeed, verticalSpeed, 0)), objects.slice(1));
+    }
+
     if(collisions.detected){
+        if(collisions.isHedge){
+            hedgeDamage();
+        }
         jumping = false;
         horizontalSpeed *= collisions.speedMultiplier[0];
         horizontalAcceleration *= collisions.speedMultiplier[0];
@@ -291,7 +308,21 @@ function updatePlayerPosition() {
         verticalAcceleration *= collisions.speedMultiplier[1];
     }
     objects[0].localMatrix = collisions.position;
+    if(collisions.position[3] < settings.horizontalBound || collisions.position[7] < settings.verticalBound){
+        fallOffScreen();
+    }
 
+}
+
+function invertPlayerModel(){
+    var currentPosition = [];
+    currentPosition[0] = objects[0].localMatrix[3];
+    currentPosition[1] = objects[0].localMatrix[7];
+    currentPosition[2] = objects[0].localMatrix[11];
+    objects[0].localMatrix = utils.multiplyMatrices(rotateYaxismatrix, objects[0].localMatrix);
+    objects[0].localMatrix[3] = currentPosition[0];
+    objects[0].localMatrix[7] = currentPosition[1];
+    objects[0].localMatrix[11] = currentPosition[2];
 }
 
 function drawScene(currentTime){
@@ -309,9 +340,9 @@ function drawScene(currentTime){
     var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
 
     // Compute the camera matrix using look at.
-    var cameraPosition = [0.0, -20.0, 200.0];
-    var target = [0.0, 0.0, 0.0];
-    var up = [0.0, 0.0, 1.0];
+    var cameraPosition = settings.playCameraPosition;
+    var target = settings.playCameraTarget;
+    var up = settings.playCameraUp;
     var cameraMatrix = utils.LookAt(cameraPosition, target, up);
     var viewMatrix = utils.invertMatrix(cameraMatrix);
 
@@ -353,6 +384,7 @@ function drawScene(currentTime){
     requestAnimationFrame(drawScene);
 
 }
+
 
 //#region Obj Load and Textures
 
@@ -688,6 +720,51 @@ function swapPlayerModel(){
 }
 
 //endregion
+
+//endregion
+
+//# region gameManager
+
+var spawnPosition;
+var lives;
+
+function startGame(playerLocalMatrix){
+    //reset parameters
+    lives = settings.startingLives;
+
+    //save player position
+    spawnPosition = playerLocalMatrix;
+
+}
+
+
+function deathScreen(){
+
+}
+
+function hedgeDamage(){
+    lives --;
+    if(lives === 0){
+        deathScreen()
+    }
+
+}
+
+function fallOffScreen(){
+    lives --;
+    if(lives === 0){
+        deathScreen()
+    }else{
+        repositionPlayer(spawnPosition);
+    }
+}
+
+function repositionPlayer(newPosition){
+    objects[0].localMatrix = newPosition;
+    if(!lookinRight){
+        invertPlayerModel()
+    }
+}
 
 //endregion
 

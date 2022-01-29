@@ -269,9 +269,9 @@ function drawScene(){
     var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
 
     // Compute the camera matrix using look at.
-    var cameraPosition = [0.0, -20.0, 200.0];
-    var target = [0.0, 0.0, 0.0];
-    var up = [0.0, 0.0, 1.0];
+    var cameraPosition = settings.cameraPosition;
+    var target = settings.target;
+    var up = settings.up;
     var cameraMatrix = utils.LookAt(cameraPosition, target, up);
     var viewMatrix = utils.invertMatrix(cameraMatrix);
 

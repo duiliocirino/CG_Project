@@ -25,22 +25,38 @@ var settings = {
     scaleFactorBrick: [0.77, 0.77, 0.77],
     scaleFactorCylinderIsland: [1, 0.805, 1],
 
+    playerScaleFactor: 6,
 
-    //Player movement values
+
+    /**Player movement values*/
     horizontalSpeedCap: 5,
     verticalSpeedCap: 5,
     gravity: -0.1,
     deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
-    jumpHeight: 2,
+    jumpHeight: 4,
 
+    /** Game parameters */
+    startingLives: 5,
+    horizontalBound: -20,
+    verticalBound: -10,
 
-    /** camera parameters */
+    /** camera parameters Main */
     cameraGamePosition: [0.0, 7.0, 4.0],
-    cameraPosition: [0.0, 10.0, 20.0],
-    target: [-10.0, 20, 0.0], //2.5 is te scale factor
-    //the target is not the origin but the point of the cabinet where the moles jump.
-    up: [0.0, 1.0, 0.0],
+    cameraPosition: [0.0, -20, 200.0],
+    target: [0.0, 0.0, 0.0],
+    up: [0.0, 0.0, 1.0],
     fieldOfView: 60,
+
+    /** Camera Parameters Create */
+    createCameraPosition: [0.0, -20.0, 200.0],
+    createCameraTarget: [0.0, 0.0, 0.0],
+    createCameraUp: [0.0, 1.0, 0.0],
+
+    /** Camera Parameters Play */
+    playCameraPosition: [0.0, 0.0, 200.0],
+    playCameraTarget: [0.0, 0.0, 0.0],
+    playCameraUp: [0.0, 1.0, 0.0],
+
 
     /** object positions */
     //Insert objects starting positions if necessary

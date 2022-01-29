@@ -56,12 +56,6 @@ var directLightColorHandle;
 var directLightDirectionHandle;
 
 
-//Parameters for Camera
-var cameraPosition = [0.0, 0.0, 200.0];
-var target = [0.0, 0.0, 0.0];
-var up = [0.0, 1.0, 0.0];
-
-
 //SKYBOX
 var skyBox = new SkyBox();
 
@@ -238,7 +232,7 @@ function drawScene(){
     var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
 
     // Compute the camera matrix using look at.
-    var cameraMatrix = utils.LookAt(cameraPosition, target, up);
+    var cameraMatrix = utils.LookAt(settings.createCameraPosition, settings.createCameraTarget, settings.createCameraUp);
     var viewMatrix = utils.invertMatrix(cameraMatrix);
 
     var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
@@ -390,14 +384,14 @@ function onKeyDown(event){
         case 87: //W
             break;
         case 65: //A
-            cameraPosition[0] += settings.translateFactor;
-            target[0] += settings.translateFactor;
+            settings.createCameraPosition[0] += settings.translateFactor;
+            settings.createCameraTarget[0] += settings.translateFactor;
             break;
         case 83: //S
             break;
         case 68: //D
-            cameraPosition[0] -= settings.translateFactor;
-            target[0] -= settings.translateFactor;
+            settings.createCameraPosition[0] -= settings.translateFactor;
+            settings.createCameraTarget[0] -= settings.translateFactor;
             break;
         case 32: //SPACEBAR
             break;
