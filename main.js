@@ -195,6 +195,7 @@ function main(){
         map.addPlayable(new Block(3,1, 0));
         map.addPlayable(new Block(4,0, 6));
         map.addPlayable(new Block(5,0, 6));
+        map.addPlayable(new Block(10,0, 6));
         map.addPlayable(new Block(10, 0, 9));
 
         worldSpace = new Node();

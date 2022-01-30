@@ -24,7 +24,7 @@ var settings = {
     translateOffsetSquareIsland: [0, 0, 0],
     translateOffsetTree:[0, 0, 0],
     translateOffsetRock: [0, 0, 0],
-    translateOffsetFlagpole: [0,0,0],
+    translateOffsetFlagpole: [0,40,0],
 
     scaleFactorBrick: [0.77, 0.77, 0.77],
     scaleFactorHedge: [0.65, 2.05, 1],
@@ -33,7 +33,7 @@ var settings = {
     scaleFactorSquareIsland: [1, 1.18, 1],
     scaleFactorTree:[1, 1, 1],
     scaleFactorRock: [1, 1, 1],
-    scaleFactorFlagpole: [1, 1, 1],
+    scaleFactorFlagpole: [0.2, 0.2, 0.2],
 
 
 
