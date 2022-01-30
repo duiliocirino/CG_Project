@@ -8,6 +8,7 @@ import {Node} from "./Engine/Model/Node.js";
 // MapHandler instance
 var mapHandler = new MapHandler();
 var map;
+var time = 0;
 //
 var baseDir;
 
@@ -36,7 +37,8 @@ var backgroundSpace;
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
 
 //TEXTURES and BUFFERS
-var texture;
+var texture = [];
+var image = [];
 
 //ATTRIBUTES AND UNIFORMS
 var positionAttributeLocation;
@@ -95,6 +97,7 @@ var activePlayerModel = 0;
 //utility
 var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
 var lookinRight = true;
+var cameraPreset;
 
 
 
@@ -211,8 +214,8 @@ function createVaos(){
 }
 
 function loadCameraSettings(){
-    let preset = parseInt(window.localStorage.getItem("cameraPreset"));
-    settings.changeCamera(preset);
+    cameraPreset = parseInt(window.localStorage.getItem("cameraPreset"));
+    settings.changeCamera(cameraPreset);
 }
 
 function sceneGraphDefinition(){
@@ -401,11 +404,11 @@ function jumpRoutine(){
 }
 
 
-function animateHedges(deltaTime){
+function animateHedges(Time){
     hedgeObjects.forEach(function (hedge){
         let baseY = hedge.gameInfo.y * settings.translateFactor;
         hedge.localMatrix[7] = baseY;
-        let movement = Math.sin(2*Math.PI*deltaTime/settings.activeHedgesTime);
+        let movement = Math.sin(0.01*Time/settings.activeHedgesTime);
         if(movement<0){
             movement = 0;
         }
@@ -425,6 +428,7 @@ function drawScene(currentTime){
         lastFrameTime = currentTime;
     }
     deltaTime = currentTime - lastFrameTime;
+    time += deltaTime;
     lastFrameTime = currentTime;
 
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
@@ -447,7 +451,7 @@ function drawScene(currentTime){
 
     moveClouds();
 
-    animateHedges(deltaTime);
+    animateHedges(time);
 
     if(areHedgesActive){
         animateHedges();
@@ -508,7 +512,7 @@ function initializeAndDrawObject(object, viewProjectionMatrix){
     gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
     gl.uniform1i(textureUniformLocation, 0);
 
     gl.bindVertexArray(object.drawInfo.vertexArray);
@@ -539,16 +543,33 @@ async function loadObjects(file) {
 }
 
 function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
-    texture = gl.createTexture();
+    texture[0] = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    var image = new Image();
-    image.src = "Graphics/Models/Terrain-Texture_2.png";
-    image.onload = function () {
+    gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+    image[0] = new Image();
+    image[0].src = "Graphics/Models/Terrain-Texture_2.png";
+    image[0].onload = function () {
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, texture[0]);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[0]);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
+
+    texture[1] = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+    image[1] = new Image();
+    image[1].src = "Graphics/Models/Flagpole.png";
+    image[1].onload = function () {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[1]);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -583,6 +604,10 @@ function getCanvas() {
 //endregion
 
 function CreateNode(x, y, type){
+    if(type === 1){
+        CreateHedgeNode(x,y);
+        return
+    }
     var z = 0;
     var translateFactor = settings.translateFactor
     var translateOffset = settings.GetTranslateByType(type);
@@ -611,6 +636,11 @@ function CreateNode(x, y, type){
         node.drawInfo.color = [0,0,0,1];
         node.drawInfo.isColorPresent = false;
     }
+    if(type===9){
+        node.drawInfo.texture = texture[1];
+    }else{
+        node.drawInfo.texture = texture[0]
+    }
     node.gameInfo = {
         x: x,
         y: y,
@@ -618,10 +648,45 @@ function CreateNode(x, y, type){
         type: type
     };
     node.setParent(mapSpace);
-    if(type === 1){
-        hedgeObjects.push(node);
-    }else{
     objects.push(node);
+}
+
+
+function CreateHedgeNode(x, y){
+    var z = 0;
+    var translateFactor = settings.translateFactor;
+    var translateOffset = settings.GetTranslateByType(1);
+    var scaleFactor = settings.GetScaleByType(1);
+
+    for(let i = 0; i < 3; i++){
+        let node = new Node();
+        node.localMatrix =
+            utils.multiplyMatrices(
+                utils.MakeTranslateMatrix(
+                    x * translateFactor + translateOffset[0] + settings.hedgeDisplacement[i],
+                    y * translateFactor + translateOffset[1],
+                    0 + translateOffset[2]),
+                utils.MakeScaleMatrixXYZ(
+                    scaleFactor[0],
+                    scaleFactor[1],
+                    scaleFactor[2]));
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[1].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[1]
+        }
+        node.drawInfo.color = settings.hedgeColor;
+        node.drawInfo.isColorPresent= true;
+
+        node.gameInfo = {
+            x: x,
+            y: y,
+            z: z,
+            type: 1
+        };
+
+        node.setParent(mapSpace);
+        hedgeObjects.push(node);
     }
 }
 
@@ -920,7 +985,14 @@ function hedgeDamage(){
     lives --;
     if(lives === 0){
         deathScreen()
+    }else{
+        repositionPlayer(playerStartPosition);
+        settings.changeCamera(cameraPreset);
     }
+    horizontalSpeed = 0;
+    verticalSpeed = 0;
+    horizontalAcceleration = 0;
+    verticalAcceleration = 0;
 
 }
 
@@ -930,7 +1002,7 @@ function fallOffScreen(){
         deathScreen()
     }else{
         repositionPlayer(playerStartPosition);
-        settings.changeCamera(0); //TODO change number with camera preset passed before playing
+        settings.changeCamera(cameraPreset);
     }
     horizontalSpeed = 0;
     verticalSpeed = 0;
