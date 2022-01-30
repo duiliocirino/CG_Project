@@ -336,8 +336,11 @@ function updatePlayerPosition() {
 
     if(collisions.detected){
         if(collisions.isHedge){
-            hedgeDamage();
+            DeathHandler();
         }
+        /*if(collisions.victory){ //TODO scommentare
+            winScreen();
+        }*/
         jumping = false;
         horizontalSpeed *= collisions.speedMultiplier[0];
         horizontalAcceleration *= collisions.speedMultiplier[0];
@@ -351,7 +354,7 @@ function updatePlayerPosition() {
         collisions.position[11] - objects[0].localMatrix[11]];
     objects[0].localMatrix = collisions.position;
     if(collisions.position[3] < settings.horizontalBound || collisions.position[7] < settings.verticalBound){
-        fallOffScreen();
+        DeathHandler();
     }
 
     animateCamera(positionDifference);
@@ -795,6 +798,11 @@ function toggleGameOver(status){
     gameOverMenu.hidden = status;
 }
 
+function toggleScreen(status, screenID){
+    let panel = document.getElementById(screenID);
+    panel.hidden = status;
+}
+
 //endregion
 
 //#region Keyboard events
@@ -966,7 +974,8 @@ function startGame(){
     objects[0].position = playerStartPosition;
     horizontalSpeedCap = settings.horizontalSpeedCap;
     verticalSpeedCap = settings.verticalSpeedCap;
-    toggleGameOver(true);
+    toggleScreen(true, "game_over_menu");
+    toggleScreen(true, "win_menu");
 }
 
 
@@ -977,11 +986,23 @@ function deathScreen(){
     verticalAcceleration = 0;
     horizontalSpeedCap = 0;
     verticalSpeedCap = 0;
-    toggleGameOver(false);
-
+    toggleScreen(false, "game_over_menu");
 }
 
-function hedgeDamage(){
+
+function winScreen(){
+    horizontalSpeed = 0;
+    verticalSpeed = 0;
+    horizontalAcceleration = 0;
+    verticalAcceleration = 0;
+    horizontalSpeedCap = 0;
+    verticalSpeedCap = 0;
+    toggleScreen(false, "win_menu");
+}
+
+
+
+function DeathHandler(){
     lives --;
     if(lives === 0){
         deathScreen()
@@ -993,22 +1014,6 @@ function hedgeDamage(){
     verticalSpeed = 0;
     horizontalAcceleration = 0;
     verticalAcceleration = 0;
-
-}
-
-function fallOffScreen(){
-    lives --;
-    if(lives === 0){
-        deathScreen()
-    }else{
-        repositionPlayer(playerStartPosition);
-        settings.changeCamera(cameraPreset);
-    }
-    horizontalSpeed = 0;
-    verticalSpeed = 0;
-    horizontalAcceleration = 0;
-    verticalAcceleration = 0;
-
 }
 
 function repositionPlayer(newPosition){
@@ -1042,4 +1047,4 @@ function toggleFullScreen() {
     }
 }
 
-window.onload = init(); //TODO mappa presa dal main
+window.onload = init();

@@ -24,6 +24,7 @@ var settings = {
     translateOffsetSquareIsland: [0, 0, 0],
     translateOffsetTree:[0, 0, 0],
     translateOffsetRock: [0, 0, 0],
+    translateOffsetFlagpole: [0,0,0],
 
     scaleFactorBrick: [0.77, 0.77, 0.77],
     scaleFactorHedge: [0.65, 2.05, 1],
@@ -32,6 +33,7 @@ var settings = {
     scaleFactorSquareIsland: [1, 1.18, 1],
     scaleFactorTree:[1, 1, 1],
     scaleFactorRock: [1, 1, 1],
+    scaleFactorFlagpole: [1,1,1],
 
 
 
@@ -152,6 +154,9 @@ var settings = {
         if (type === 7) {
             return settings.translateOffsetTree
         }
+        if (type === 9) {
+            return settings.translateOffsetFlagpole;
+        }
     },
 
     GetScaleByType: function(type) {
@@ -178,6 +183,9 @@ var settings = {
         }
         if (type === 7) {
             return settings.scaleFactorTree
+        }
+        if (type === 9) {
+            return settings.scaleFactorFlagpole
         }
     },
 

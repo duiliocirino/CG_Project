@@ -38,7 +38,8 @@ var deltaTime;
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
 
 //TEXTURES and BUFFERS
-var texture;
+var texture = [];
+var image = [];
 
 //ATTRIBUTES AND UNIFORMS
 var positionAttributeLocation;
@@ -194,9 +195,7 @@ function main(){
         map.addPlayable(new Block(3,1, 0));
         map.addPlayable(new Block(4,0, 6));
         map.addPlayable(new Block(5,0, 6));
-        map.addPlayable(new Block(6,1, 0));
-        map.addPlayable(new Block(7,1, 0));
-        map.addPlayable(new Block(8,0, 6));
+        map.addPlayable(new Block(10, 0, 9));
 
         worldSpace = new Node();
         worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
@@ -208,7 +207,8 @@ function main(){
             bufferLength: meshes[8].mesh.indexBuffer.numItems,
             vertexArray: vao_arr[8],
             color: settings.playerColor,
-            isColorPresent: true
+            isColorPresent: true,
+            texture: texture[0]
         };
         playerNode.setParent(worldSpace);
         objects.push(playerNode);
@@ -258,7 +258,12 @@ function CreateNode(x, y, type){
     }else{
         node.drawInfo.color = [0,0,0,1];
         node.drawInfo.isColorPresent = false;
-    };
+    }
+    if(type === 9){
+        node.drawInfo.texture = texture[1];
+    }else{
+        node.drawInfo.texture = texture[0]
+    }
     node.gameInfo = {
         x: x,
         y: y,
@@ -390,7 +395,8 @@ function setClouds(){
                 bufferLength: meshes[element.type].mesh.indexBuffer.numItems,
                 vertexArray: vao_arr[element.type],
                 color: settings.bricksColor,
-                isColorPresentBooleanLocation: true
+                isColorPresentBooleanLocation: true,
+                texture: texture[0]
             };
             node.setParent(mapSpace);
             objects.push(node);
@@ -461,7 +467,7 @@ function drawScene(currentTime){
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
         gl.uniform1i(textureUniformLocation, 0);
 
         gl.bindVertexArray(object.drawInfo.vertexArray);
@@ -497,7 +503,7 @@ function drawScene(currentTime){
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
         gl.uniform1i(textureUniformLocation, 0);
 
         gl.bindVertexArray(object.drawInfo.vertexArray);
@@ -545,16 +551,33 @@ async function loadObjects(file) {
 }
 
 function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
-    texture = gl.createTexture();
+    texture[0] = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    var image = new Image();
-    image.src = "Graphics/Models/Terrain-Texture_2.png";
-    image.onload = function () {
+    gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+    image[0] = new Image();
+    image[0].src = "Graphics/Models/Terrain-Texture_2.png";
+    image[0].onload = function () {
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, texture[0]);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[0]);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
+
+    texture[1] = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+    image[1] = new Image();
+    image[1].src = "Graphics/Models/Flagpole.png";
+    image[1].onload = function () {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[1]);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
