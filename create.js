@@ -36,7 +36,8 @@ var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
 var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
 
 //TEXTURES and BUFFERS
-var texture;
+var texture = [];
+var image = [];
 
 //ATTRIBUTES AND UNIFORMS
 var positionAttributeLocation;
@@ -282,7 +283,7 @@ function drawScene(){
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
         gl.uniform1i(textureUniformLocation, 0);
 
         gl.bindVertexArray(object.drawInfo.vertexArray);
@@ -318,7 +319,7 @@ function drawScene(){
         gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
         gl.uniform1i(textureUniformLocation, 0);
 
         gl.bindVertexArray(object.drawInfo.vertexArray);
@@ -350,16 +351,33 @@ async function loadObjects(file) {
 }
 
 function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
-    texture = gl.createTexture();
+    texture[0] = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    var image = new Image();
-    image.src = "Graphics/Models/Terrain-Texture_2.png";
-    image.onload = function () {
+    gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+    image[0] = new Image();
+    image[0].src = "Graphics/Models/Terrain-Texture_2.png";
+    image[0].onload = function () {
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, texture[0]);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[0]);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
+
+    texture[1] = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+    image[1] = new Image();
+    image[1].src = "Graphics/Models/Flagpole.png";
+    image[1].onload = function () {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[1]);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -438,7 +456,8 @@ function CreateDecorationNode(x, y, type){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6]
+        vertexArray: vao_arr[6],
+        texture: texture[0]
     }
     if(type === 0){
         node.drawInfo.color = settings.bricksColor;
@@ -465,7 +484,8 @@ function CreateDecorationNode(x, y, type){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[type]
+        vertexArray: vao_arr[type],
+        texture: texture[0]
     }
     if(type === 0){
         node.drawInfo.color = settings.bricksColor;
@@ -499,7 +519,8 @@ function CreateNode(x, y, type){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[type]
+        vertexArray: vao_arr[type],
+        texture: texture[0]
     }
     if(type === 0){
         node.drawInfo.color = settings.bricksColor;
@@ -508,6 +529,7 @@ function CreateNode(x, y, type){
         node.drawInfo.color = [0,0,0,1];
         node.drawInfo.isColorPresent = false;
     }
+
     node.setParent(mapSpace);
     map.addPlayable(new Block(x, y, type));
     objects.push(node);
@@ -533,7 +555,10 @@ function CreatePole(x, y){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9]
+        vertexArray: vao_arr[9],
+        texture: texture[1],
+        color: [0.5, 0.5, 0.5],
+        isColorPresentBooleanLocation: false
     }
 
     node.setParent(mapSpace);
@@ -562,7 +587,8 @@ function CreateHedgeNode(x, y){
         node.drawInfo = {
             programInfo: program,
             bufferLength: meshes[1].mesh.indexBuffer.numItems,
-            vertexArray: vao_arr[1]
+            vertexArray: vao_arr[1],
+            texture: texture[0]
         }
         node.drawInfo.color = settings.hedgeColor;
         node.drawInfo.isColorPresent= true;

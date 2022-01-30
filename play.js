@@ -338,9 +338,9 @@ function updatePlayerPosition() {
         if(collisions.isHedge){
             DeathHandler();
         }
-        /*if(collisions.victory){ //TODO scommentare
+        if(collisions.victory){
             winScreen();
-        }*/
+        }
         jumping = false;
         horizontalSpeed *= collisions.speedMultiplier[0];
         horizontalAcceleration *= collisions.speedMultiplier[0];
