@@ -39,6 +39,13 @@
     left: 30%;
 }
 
+.radio_table {
+    margin: auto 0;
+    position: relative;
+    top: 70%;
+    left: 40%;
+}
+
 * {
     margin: 0;
     padding: 0;
