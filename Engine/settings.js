@@ -26,9 +26,9 @@ var settings = {
     translateOffsetRock: [0, 0, 0],
 
     scaleFactorBrick: [0.77, 0.77, 0.77],
-    scaleFactorHedge: [1, 1, 1],
+    scaleFactorHedge: [0.65, 2.05, 1],
     scaleFactorCloud: [1, 1, 1],
-    scaleFactorCylinderIsland: [1, 0.805, 1],
+    scaleFactorCylinderIsland: [1.1, 0.8, 1],
     scaleFactorSquareIsland: [1, 1.18, 1],
     scaleFactorTree:[1, 1, 1],
     scaleFactorRock: [1, 1, 1],
@@ -39,6 +39,7 @@ var settings = {
     playerColor: [0.98, 0.98, 0.98, 1],
     cloudsColor: [1, 1, 1, 1],
     bricksColor: [0.51, 0.11, 0.11, 1],
+    hedgeColor: [0.88, 0.88, 0.88, 1],
 
 
     playerScaleFactor: 6,
@@ -48,6 +49,8 @@ var settings = {
     cloudSpeed: 0.05,
     cloudsBackDespawnFactor: 280,
     cloudsFrontRespawnFactor: 450,
+
+    hedgeDisplacement: [-6, 0, 6],
 
 
     /**Player movement values*/

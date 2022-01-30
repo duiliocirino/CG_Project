@@ -105,7 +105,7 @@ function checkSquareCollision(newPlayer, sceneObjects){
     var objects = [];
     sceneObjects.forEach(object => {
         let isHedge = false;
-        if(object.type === 1) isHedge = true;
+        if(object.gameInfo.type === 1) isHedge = true;
         let objectX = object.gameInfo.x * settings.translateFactor;
         let objectY = object.gameInfo.y * settings.translateFactor;
         objects.push(new Object(isHedge, object, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));

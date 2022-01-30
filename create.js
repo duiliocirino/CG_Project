@@ -408,7 +408,9 @@ function addBlock(){
 
     if(map.checkIfOtherBlockIsPresent(x, y)) return;
 
-    if(isHedgePresent){}
+    if(isHedgePresent){
+        CreateHedgeNode(x,y);
+    }
     CreateNode(x, y, type);
 
     document.getElementById("lastX").textContent = x.toString();
@@ -505,6 +507,37 @@ function CreateNode(x, y, type){
     node.setParent(mapSpace);
     map.addPlayable(new Block(x, y, type));
     objects.push(node);
+}
+
+function CreateHedgeNode(x, y){
+    var z = 0;
+    var translateFactor = settings.translateFactor;
+    var translateOffset = settings.GetTranslateByType(1);
+    var scaleFactor = settings.GetScaleByType(1);
+
+    for(let i = 0; i < 3; i++){
+        let node = new Node();
+        node.localMatrix =
+            utils.multiplyMatrices(
+                utils.MakeTranslateMatrix(
+                    x * translateFactor + translateOffset[0] + settings.hedgeDisplacement[i],
+                    y * translateFactor + translateOffset[1],
+                    0 + translateOffset[2]),
+                utils.MakeScaleMatrixXYZ(
+                    scaleFactor[0],
+                    scaleFactor[1],
+                    scaleFactor[2]));
+        node.drawInfo = {
+            programInfo: program,
+            bufferLength: meshes[1].mesh.indexBuffer.numItems,
+            vertexArray: vao_arr[1]
+        }
+        node.drawInfo.color = settings.hedgeColor;
+        node.drawInfo.isColorPresent= true;
+        node.setParent(mapSpace);
+        objects.push(node);
+    }
+    map.addPlayable(new Block(x, y, 1));
 }
 
 function saveMap(){
