@@ -14,8 +14,9 @@ class Player{
  * Object class to store information of objects other then the player about their position and their collider in the game.
  */
 class Object{
-    constructor(isHedge, sceneObject, x, y, rangeX, rangeY) {
+    constructor(isHedge, isVictory, sceneObject, x, y, rangeX, rangeY) {
         this.isHedge = isHedge;
+        this.isVictory = isVictory;
         this.sceneObject = sceneObject;
         this.objectX = x;
         this.objectY = y;
@@ -36,6 +37,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
     let detected = false;
     let position = [];
     let isHedge = false;
+    let victory = false;
     let result = {position: [0, 0], speedMultiplier: [1, 1]}
 
     var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[3]), getPlayerRangeY(playerCurrPos[7]))
@@ -53,8 +55,13 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
             if(object.isHedge)
                 isHedge = true;
         })
-        if(isHedge) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge}
-
+        // CHECK IF VICTORY POLE WAS TOUCHED
+        collidingObjects.forEach(object => {
+            if(object.isVictory)
+                victory = true;
+        })
+        if(isHedge) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge, victory: victory};
+        if(checkVictory()) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge, victory: victory};
         // IF NOT AN HEDGE
         result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
         position = playerNextPos;
@@ -64,7 +71,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
     // NO COLLISION => TELL THE PLAYER THE POSITION CALCULATED WAS RIGHT
     else position = playerNextPos;
 
-    return {detected: detected, speedMultiplier: result.speedMultiplier, position: position, isHedge: isHedge}
+    return {detected: detected, speedMultiplier: result.speedMultiplier, position: position, isHedge: isHedge, victory: victory};
 }
 
 /**
@@ -105,10 +112,12 @@ function checkSquareCollision(newPlayer, sceneObjects){
     var objects = [];
     sceneObjects.forEach(object => {
         let isHedge = false;
+        let isVictory = false;
         if(object.gameInfo.type === 1) isHedge = true;
+        if(object.gameInfo.type === 9) isVictory = true;
         let objectX = object.gameInfo.x * settings.translateFactor;
         let objectY = object.gameInfo.y * settings.translateFactor;
-        objects.push(new Object(isHedge, object, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));
+        objects.push(new Object(isHedge, isVictory, object, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));
     })
     var collidingObjects = [];
     objects.forEach(object => {
@@ -134,6 +143,10 @@ function getObjectRangeY(isHedge, objectY){
     if(isHedge)
         return [objectY - settings.hedgesColliderX + settings.translateFactor, objectY + settings.hedgesColliderX + settings.translateFactor];
     return [objectY, objectY + settings.blocksColliderY];
+}
+
+function checkVictory(){
+
 }
 
 /**

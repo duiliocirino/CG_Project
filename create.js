@@ -400,18 +400,21 @@ function addBlock(){
     let x = parseInt(document.getElementById("newX").value);
     let y = parseInt(document.getElementById("newY").value);
     let type = parseInt(document.getElementById("newType").value);
-    let isHedgePresent = document.getElementById("checkbox").checked;
+    let isHedgePresent = document.getElementById("checkboxH").checked;
+    let isVictoryPresent = document.getElementById("checkboxV").checked;
     let decoration = parseInt(document.getElementById("newDecoration").value);
 
     if (decoration !== -1 && decoration !== null && !map.checkIfOtherBlockIsPresentBG(x)) {
         CreateDecorationNode(x, y, decoration);
     }
 
+    if(isHedgePresent)
+        CreateHedgeNode(x, y);
+    if(isVictoryPresent)
+        CreatePole(x, y);
+
     if(map.checkIfOtherBlockIsPresent(x, y)) return;
 
-    if(isHedgePresent){
-        CreateHedgeNode(x,y);
-    }
     CreateNode(x, y, type);
 
     document.getElementById("lastX").textContent = x.toString();
@@ -507,6 +510,34 @@ function CreateNode(x, y, type){
     }
     node.setParent(mapSpace);
     map.addPlayable(new Block(x, y, type));
+    objects.push(node);
+}
+
+function CreatePole(x, y){
+    var z = 0;
+    var translateFactor = settings.translateFactor
+    var translateOffset = settings.GetTranslateByType(9);
+    var scaleFactor = settings.GetScaleByType(9);
+
+    const node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor + translateOffset[0],
+                y * translateFactor + translateOffset[1],
+                0 + translateOffset[2]),
+            utils.MakeScaleMatrixXYZ(
+                scaleFactor[0],
+                scaleFactor[1],
+                scaleFactor[2]));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[9].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[9]
+    }
+
+    node.setParent(mapSpace);
+    map.addPlayable(new Block(x, y, 9));
     objects.push(node);
 }
 

@@ -154,8 +154,8 @@ button:focus {
     font-family: Arial;
     position: absolute;
     z-index: 1;
-    left: 20px;
-    bottom: 30px;
+    right: 20px;
+    top: 30px;
     border-style: dotted;
     border-color: rgba(71, 72, 71, 0.64);
     overflow: auto;
