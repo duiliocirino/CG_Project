@@ -6,7 +6,7 @@ export class Map{
     constructor(name, lastMapId) {
         this.id = lastMapId + 1;
         this.playableObjects = [];
-        this.decorations = [];
+        this.backgroundObjects = [];
         this.name = name;
     }
 
@@ -44,4 +44,17 @@ export class Map{
      }
 
     //TODO: decorations implementation
+
+     addBackgroundObject(block){
+         this.backgroundObjects.push(block)
+     }
+
+     checkIfOtherBlockIsPresentBG(x){
+         let bool = false;
+         this.backgroundObjects.forEach(function (block){
+             if(block.position[0] === x)
+                 bool = true;
+         });
+         return bool;
+     }
 }

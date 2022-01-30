@@ -15,7 +15,7 @@
         <label class="menu_title">Platform Maker</label><br>
         <button id="select_menu_button" class="menu_button">Select Map and Play</button>
         <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button><br>
-        <button id="maps_menu_button" class="menu_button">Reset Maps</button>
+        <button id="maps_menu_button" class="menu_button">Maps Menu</button>
     </div>
     <div id="backContainer" class="button_container" hidden>
         <button onclick="location.href='index.html'">Back</button>
@@ -29,16 +29,34 @@
                 <td>&nbsp;</td>
             </tr>
         </table>
+        <table id="radio" class="radio_table">
+            <tr>
+                <td>
+                    <input type="radio" id="preset0" name="preset" value="0"
+                           checked>
+                    <label for="preset0">Preset 0</label>
+                </td>
+                <td>
+                    <input type="radio" id="preset1" name="preset" value="1">
+                    <label for="preset1">Preset 1</label>
+                </td>
+                <td>
+                    <input type="radio" id="preset2" name="preset" value="2">
+                    <label for="preset2">Preset 2</label>
+                </td>
+            </tr>
+        </table>
     </div>
     <div id="maps" class="menu" hidden>
-        <label class="menu_title">Select Map</label><br>
         <table id="maps_reset_table" class="maps_table">
+            <label class="menu_title">Map Deletion</label><br>
             <tr>
                 <td>ID</td>
                 <td>Name</td>
                 <td>&nbsp;</td>
             </tr>
         </table>
+        <button id="reset_maps_button" class="menu_button">Reset Maps</button>
     </div>
     <audio loop autoplay>
         <source src="Game/Music/main.mp3">

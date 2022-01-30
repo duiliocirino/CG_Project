@@ -150,6 +150,8 @@ function main(){
 
     skyBox.loadEnvironment(gl);
 
+    loadCameraSettings();
+
     sceneGraphDefinition();
 
     requestAnimationFrame(drawScene);
@@ -201,6 +203,11 @@ function createVaos(){
 
         vao_arr.push(vao);
     });
+}
+
+function loadCameraSettings(){
+    let preset = parseInt(window.localStorage.getItem("cameraPreset"));
+    settings.changeCamera(preset);
 }
 
 function sceneGraphDefinition(){

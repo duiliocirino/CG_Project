@@ -287,6 +287,42 @@ function drawScene(){
         gl.bindVertexArray(object.drawInfo.vertexArray);
         gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
     });
+
+    backgroundObjects.forEach(function(object) {
+        gl.useProgram(object.drawInfo.programInfo);
+
+        var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
+        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
+        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
+        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+        if(object.drawInfo.isColorPresent){
+            gl.uniform1f(isColorPresentBooleanLocation,1.0);
+        }else{
+            gl.uniform1f(isColorPresentBooleanLocation, 0.0);
+        }
+
+        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
+        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(textureUniformLocation, 0);
+
+        gl.bindVertexArray(object.drawInfo.vertexArray);
+        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
+    });
     requestAnimationFrame(drawScene);
 }
 
@@ -363,14 +399,78 @@ function addBlock(){
     let x = parseInt(document.getElementById("newX").value);
     let y = parseInt(document.getElementById("newY").value);
     let type = parseInt(document.getElementById("newType").value);
+    let isHedgePresent = document.getElementById("checkbox").checked;
+    let decoration = parseInt(document.getElementById("newDecoration").value);
+
+    if (decoration !== -1 && decoration !== null && !map.checkIfOtherBlockIsPresentBG(x)) {
+        CreateDecorationNode(x, y, decoration);
+    }
 
     if(map.checkIfOtherBlockIsPresent(x, y)) return;
 
-    map.addPlayable(new Block(x, y, type));
+    if(isHedgePresent){}
     CreateNode(x, y, type);
 
     document.getElementById("lastX").textContent = x.toString();
     document.getElementById("lastY").textContent = y.toString();
+}
+
+function CreateDecorationNode(x, y, type){
+    var z = -settings.translateFactor;
+    var translateFactor = settings.translateFactor;
+    var translateOffset = settings.GetTranslateByType(type);
+    var scaleFactor = settings.GetScaleByType(type);
+
+    let node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor,
+                y * translateFactor,
+                z),
+            utils.MakeScaleMatrixXYZ(1,settings.scaleFactorSquareIsland[1],1));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[6].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[6]
+    }
+    if(type === 0){
+        node.drawInfo.color = settings.bricksColor;
+        node.drawInfo.isColorPresent= true;
+    }else{
+        node.drawInfo.color = [0,0,0,1];
+        node.drawInfo.isColorPresent = false;
+    }
+    node.setParent(mapSpace);
+    map.addBackgroundObject(new Block(x, y, 6));
+    backgroundObjects.push(node);
+
+    node = new Node();
+    node.localMatrix =
+        utils.multiplyMatrices(
+            utils.MakeTranslateMatrix(
+                x * translateFactor + translateOffset[0],
+                (y+1) * translateFactor + translateOffset[1],
+                z + translateOffset[2]),
+            utils.MakeScaleMatrixXYZ(
+                scaleFactor[0],
+                scaleFactor[1],
+                scaleFactor[2]));
+    node.drawInfo = {
+        programInfo: program,
+        bufferLength: meshes[type].mesh.indexBuffer.numItems,
+        vertexArray: vao_arr[type]
+    }
+    if(type === 0){
+        node.drawInfo.color = settings.bricksColor;
+        node.drawInfo.isColorPresent= true;
+    }else{
+        node.drawInfo.color = [0,0,0,1];
+        node.drawInfo.isColorPresent = false;
+    }
+    node.setParent(mapSpace);
+    map.addBackgroundObject(new Block(x, y, type));
+    backgroundObjects.push(node);
 }
 
 function CreateNode(x, y, type){
@@ -403,6 +503,7 @@ function CreateNode(x, y, type){
         node.drawInfo.isColorPresent = false;
     }
     node.setParent(mapSpace);
+    map.addPlayable(new Block(x, y, type));
     objects.push(node);
 }
 

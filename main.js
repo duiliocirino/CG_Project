@@ -29,9 +29,6 @@ var worldSpace;
 var mapSpace;
 var skySpace;
 
-//utility
-var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
-
 
 //Animation
 var lastFrameTime;
@@ -205,10 +202,7 @@ function main(){
         worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
 
         var playerNode = new Node();
-        playerNode.localMatrix = utils.multiplyMatrices(
-            rotateYaxismatrix,utils.multiplyMatrices(
-                utils.MakeTranslateMatrix(0, 25, 0),
-                utils.MakeScaleMatrix(settings.playerScaleFactor)));
+        playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 20, 0), utils.MakeScaleMatrix(4))
         playerNode.drawInfo = {
             programInfo: program,
             bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -602,12 +596,26 @@ function setGuiListeners(){
     document.getElementById("select_menu_button").addEventListener("click", goToSelectMenu);
 
     document.getElementById("maps_menu_button").addEventListener("click", goToMapsMenu);
+
+    document.getElementById("reset_maps_button").addEventListener("click", resetMaps);
+
 }
 
 //# region UI events
 
+function deleteAllRows(tableId){
+    var table = document.getElementById(tableId);
+    let i;
+    for(i = table.rows.length - 1; i > 0; i--)
+    {
+        table.deleteRow(i);
+    }
+}
+
 function resetMaps() {
     mapHandler.resetMaps();
+    deleteAllRows("maps_reset_table");
+    addRowsDelete();
 }
 
 function goToMapsMenu() {
@@ -637,6 +645,8 @@ function addRowsDelete(){
         playCell.innerHTML= '<input type="button" value="Delete">'
         playCell.addEventListener("click", function (e){
             mapHandler.removeMap(map.id);
+            deleteAllRows("maps_reset_table");
+            addRowsDelete();
         });
 
         i++;
@@ -644,7 +654,16 @@ function addRowsDelete(){
 }
 
 function playSelected(mapId){
-    //let id = obj.parentNode;
+    let cameraPreset = 0;
+    let cameraPreset0 = document.getElementById("preset0");
+    let cameraPreset1 = document.getElementById("preset1");
+    let cameraPreset2 = document.getElementById("preset2");
+
+    if (cameraPreset0.checked) cameraPreset = 0;
+    if (cameraPreset1.checked) cameraPreset = 1;
+    if (cameraPreset2.checked) cameraPreset = 2;
+
+    window.localStorage.setItem("cameraPreset", cameraPreset.toString());
     window.localStorage.setItem("playMap", mapId);
     window.location.href = "play.html";
 }

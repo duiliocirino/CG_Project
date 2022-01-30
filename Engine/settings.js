@@ -22,12 +22,17 @@ var settings = {
     translateOffsetCloud: [0, 160, 0],
     translateOffsetCylinderIsland: [0, 0, 0],
     translateOffsetSquareIsland: [0, 0, 0],
+    translateOffsetTree:[0, 0, 0],
+    translateOffsetRock: [0, 0, 0],
 
     scaleFactorBrick: [0.77, 0.77, 0.77],
     scaleFactorHedge: [1, 1, 1],
     scaleFactorCloud: [1, 1, 1],
     scaleFactorCylinderIsland: [1, 0.805, 1],
     scaleFactorSquareIsland: [1, 1.18, 1],
+    scaleFactorTree:[1, 1, 1],
+    scaleFactorRock: [1, 1, 1],
+
 
 
     /** Objects color */
