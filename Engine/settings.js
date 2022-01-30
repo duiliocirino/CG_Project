@@ -67,6 +67,9 @@ var settings = {
     horizontalBound: -60,
     verticalBound: -100,
 
+    activeHedgesTime: 2,
+    hedgesHeight: 10,
+
     /**
      * Map values
      */
