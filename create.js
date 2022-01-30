@@ -541,7 +541,14 @@ function CreateHedgeNode(x, y){
 }
 
 function saveMap(){
-    mapHandler.storeMap(map);
+    let mapName = document.getElementById("newName").value;
+    if (mapName === null || mapName === undefined|| mapName === "")
+        alert("You cannot create a map with no name");
+    else{
+        alert("You successfully stored your map");
+        map.setMapName(mapName);
+        mapHandler.storeMap(map);
+    }
 }
 
 function undoBlock(){

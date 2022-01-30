@@ -19,6 +19,10 @@ export class Map{
         }
     }
 
+    setMapName(name) {
+        this.name = name;
+    }
+
     popPlayable() {
         if (this.playableObjects.length > 0){
             this.playableObjects.pop();

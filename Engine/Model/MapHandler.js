@@ -20,10 +20,17 @@ export class MapHandler{
     }
 
     storeMap(map){
-        this.maps.push(map);
-        this.lastMapId += 1;
-        localStorage.setItem("lastMapId", this.lastMapId.toString());
-        localStorage.setItem("maps", JSON.stringify(this.maps));
+        var temp = this.maps.find(b => b.id === map.id);
+        if(temp !== undefined){
+            this.maps.pop();
+            this.maps.push(map);
+            localStorage.setItem("maps", JSON.stringify(this.maps));
+        } else {
+            this.maps.push(map);
+            this.lastMapId += 1;
+            localStorage.setItem("lastMapId", this.lastMapId.toString());
+            localStorage.setItem("maps", JSON.stringify(this.maps));
+        }
     }
 
     removeMap(mapId) {
