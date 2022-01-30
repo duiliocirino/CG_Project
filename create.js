@@ -433,20 +433,12 @@ function setGuiListeners(){
 function onKeyDown(event){
     switch (event.keyCode){
         case 87: //W
-            settings.createCameraPosition[1] += settings.translateFactor;
-            settings.createCameraTarget[1] += settings.translateFactor;
             break;
         case 65: //A
-            settings.createCameraPosition[0] -= settings.translateFactor;
-            settings.createCameraTarget[0] -= settings.translateFactor;
             break;
         case 83: //S
-            settings.createCameraPosition[1] -= settings.translateFactor;
-            settings.createCameraTarget[1] -= settings.translateFactor;
             break;
         case 68: //D
-            settings.createCameraPosition[0] += settings.translateFactor;
-            settings.createCameraTarget[0] += settings.translateFactor;
             break;
         case 32: //SPACEBAR
             break;

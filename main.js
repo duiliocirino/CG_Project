@@ -29,6 +29,9 @@ var worldSpace;
 var mapSpace;
 var skySpace;
 
+//utility
+var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
+
 
 //Animation
 var lastFrameTime;
@@ -202,7 +205,10 @@ function main(){
         worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
 
         var playerNode = new Node();
-        playerNode.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(0, 20, 0), utils.MakeScaleMatrix(4))
+        playerNode.localMatrix = utils.multiplyMatrices(
+            rotateYaxismatrix,utils.multiplyMatrices(
+                utils.MakeTranslateMatrix(0, 25, 0),
+                utils.MakeScaleMatrix(settings.playerScaleFactor)));
         playerNode.drawInfo = {
             programInfo: program,
             bufferLength: meshes[8].mesh.indexBuffer.numItems,
