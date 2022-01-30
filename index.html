@@ -13,12 +13,12 @@
     <canvas id="canvas">Not working canvas</canvas>
     <div id="mode" class="menu" >
         <label class="menu_title">Platform Maker</label><br>
-        <button id="select_menu_button" class="menu_button">Select Map and Play</button>
-        <button id="create_page_button" class="menu_button" onclick="location.href='create.html'">Create</button><br>
-        <button id="maps_menu_button" class="menu_button">Maps Menu</button>
+        <button id="select_menu_button" class="noselect">Select Map and Play</button>
+        <button id="create_page_button" class="noselect" onclick="location.href='create.html'">Create your map</button><br>
+        <button id="maps_menu_button" class="noselect">Maps Menu</button>
     </div>
-    <div id="backContainer" class="button_container" hidden>
-        <button onclick="location.href='index.html'">Back</button>
+    <div id="backContainer" hidden>
+        <button class="noselect" onclick="location.href='index.html'">Back</button>
     </div>
     <div id="select" class="menu" hidden>
         <label class="menu_title">Select Map</label><br>
@@ -56,7 +56,7 @@
                 <td>&nbsp;</td>
             </tr>
         </table>
-        <button id="reset_maps_button" class="menu_button">Reset Maps</button>
+        <button id="reset_maps_button" class="noselect">Reset Maps</button>
     </div>
     <audio loop autoplay>
         <source src="Game/Music/main.mp3">

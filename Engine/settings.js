@@ -33,7 +33,7 @@ var settings = {
     scaleFactorSquareIsland: [1, 1.18, 1],
     scaleFactorTree:[1, 1, 1],
     scaleFactorRock: [1, 1, 1],
-    scaleFactorFlagpole: [1,1,1],
+    scaleFactorFlagpole: [1, 1, 1],
 
 
 
