@@ -287,8 +287,6 @@ function sceneGraphDefinition(){
         CreateDecorationNode(xPos, yPos, element.type);
     });
 
-
-
 }
 //endregion
 
@@ -781,6 +779,10 @@ function setGuiListeners(){
     document.getElementById("play_again_button").addEventListener("click", function (e){
         startGame();
     });
+
+    document.getElementById("play_pain_button").addEventListener("click", function (e){
+        startGame();
+    });
     /*document.getElementById("back_to_main").addEventListener("click", function (e){
         addBlock();
     });*/
@@ -866,6 +868,7 @@ function onKeyDown(event){
             checkEasterEgg(7);
             if(easterEgg === 8){
                 swapPlayerModel();
+                swapMusic();
             }
             break;
     }
@@ -959,6 +962,15 @@ function swapPlayerModel(){
     easterEgg = 0;
 }
 
+function swapMusic(){
+    if(activePlayerModel === 1){
+        var prob = Math.random();
+        if (prob > 0.5) document.getElementById("audio").src = "Game/Music/playEDgy.mp3";
+        else document.getElementById("audio").src = "Game/Music/playEDgy2.mp3";
+    } else {
+        document.getElementById("audio").src = "Game/Music/play.mp3";
+    }
+}
 //endregion
 
 //endregion
