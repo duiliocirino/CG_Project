@@ -103,7 +103,6 @@ let skyBox = new SkyBox();
 //endregion
 
 //#region Init and Main
-
 /**
  * Entry point of the WebGL program.
  */
@@ -164,7 +163,6 @@ function main(){
 //#endregion
 
 //#region Program Initialization
-
 /**
  * This method gets the location of all Attributes and Uniforms of the GLProgram.
  */
@@ -255,7 +253,7 @@ function sceneGraphDefinition(){
 }
 //endregion
 
-//#region Rendering
+//#region Rendering and animations
 /**
  * This is the rendering part of the program that will be drawn on the canvas at each frame.
  */
@@ -275,7 +273,7 @@ function drawScene(){
 
     skyBox.InitializeAndDraw();
 
-    objectDrawing(objects, viewProjectionMatrix)
+    objectDrawing(objects, viewProjectionMatrix);
     objectDrawing(backgroundObjects, viewProjectionMatrix);
 
     requestAnimationFrame(drawScene);
@@ -371,7 +369,6 @@ function setupTextures() {
         };
     }
 }
-
 //endregion
 
 //#region Canvas
@@ -395,7 +392,6 @@ function getCanvas() {
     gl.clearColor(1, 1, 1, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 }
-
 //endregion
 
 //#region Object creation functions
@@ -441,7 +437,6 @@ function addBlock(){
  * @param type: the mesh type of the new object.
  * @param textureNo: the texture that must be applied to the new object, if any.
  * @returns {Node}: the node object created.
- * @constructor
  */
 function CreateNode(x, y, z, type, textureNo){
     let translateFactor = settings.translateFactor
@@ -481,7 +476,6 @@ function CreateNode(x, y, z, type, textureNo){
  * @param x: the x position of the new backgroundObject.
  * @param y: the y position of the new backgroundObject.
  * @param type: the mesh type of the new backgroundObject.
- * @constructor
  */
 function CreateDecorationNode(x, y, type){
     // Set z level
@@ -502,7 +496,6 @@ function CreateDecorationNode(x, y, type){
  * This method adds a decoration to the map.
  * @param x: the x position of the new pole.
  * @param y: the y position of the new pole.
- * @constructor
  */
 function CreatePole(x, y){
     let node = CreateNode(x, y, 0, 9, 1);
@@ -515,7 +508,6 @@ function CreatePole(x, y){
  * This method adds a hedge to the map.
  * @param x: the x position of the new hedge.
  * @param y: the y position of the new hedge.
- * @constructor
  */
 function CreateHedgeNode(x, y){
     let translateFactor = settings.translateFactor;
@@ -550,7 +542,9 @@ function CreateHedgeNode(x, y){
 //endregion
 
 //#region Event Listeners
-
+/**
+ * This method sets the interaction with interface's components.
+ */
 function setGuiListeners(){
     document.getElementById("createButton").addEventListener("click", addBlock);
     document.getElementById("undoButton").addEventListener("click", undoBlock);
@@ -558,6 +552,9 @@ function setGuiListeners(){
     setSlidersListeners();
 }
 
+/**
+ * This method saves the map in the local storage.
+ */
 function saveMap(){
     let mapName = document.getElementById("newName").value;
     if (mapName === null || mapName === undefined|| mapName === "")
@@ -569,6 +566,9 @@ function saveMap(){
     }
 }
 
+/**
+ * This method undoes the last playable block added to the scene.
+ */
 function undoBlock(){
     if(map.playableObjects.length === 1) return;
     map.popPlayable();
@@ -577,6 +577,10 @@ function undoBlock(){
     document.getElementById("lastY").textContent = map.playableObjects[map.playableObjects.length - 1].position[1].toString();
 }
 
+/**
+ * Keyboard event handling.
+ * @param event
+ */
 function onKeyDown(event){
     switch (event.keyCode){
         case 87: //W
@@ -626,6 +630,10 @@ function onKeyDown(event){
     }
 }
 
+/**
+ * Keyboard event handling.
+ * @param event
+ */
 function onKeyUp(event){
     switch (event.keyCode){
         case 87: //W
