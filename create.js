@@ -265,7 +265,7 @@ function drawScene(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     let aspect = gl.canvas.width / gl.canvas.height;
-    let projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
+    let projectionMatrix = utils.MakePerspective(settings.fieldOfView, aspect, 1.0, 2000.0);
 
     let cameraMatrix = utils.LookAt(settings.createCameraPosition, settings.createCameraTarget, settings.createCameraUp);
     let viewMatrix = utils.invertMatrix(cameraMatrix);
@@ -698,13 +698,19 @@ settingObj.prototype.lock= function(){
 
 //TODO check for right values
 const gui_settings = {
-    'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
-    'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
-    'cameraZ': new settingObj(50, false, settings.cameraPosition[2]),
+    'cameraX': new settingObj(300, false, settings.cameraPosition[0]),
+    'cameraY': new settingObj(300, false, settings.cameraPosition[1]),
+    'cameraZ': new settingObj(300, false, settings.cameraPosition[2]),
     'fieldOfView': new settingObj(180, true, settings.fieldOfView),
+    'posX': new settingObj(8, false, settings.pointLightPosition[0]),
+    'posY': new settingObj(8, false, settings.pointLightPosition[1]),
+    'posZ': new settingObj(8, false, settings.pointLightPosition[2]),
+    'lightDecay': new settingObj(5, true, settings.pointLightDecay),
+    'lightTarget': new settingObj(20, true, settings.pointLightTarget),
     'dirTheta': new settingObj(180, true, settings.directLightTheta),
     'dirPhi': new settingObj(180, false, settings.directLightPhi),
-    'ambientLight': new settingObj(1, true, settings.ambientLight[0])
+    'ambientLight': new settingObj(1, true, settings.ambientLight[0]),
+    'shininess': new settingObj(200, true, settings.shiness),
 }
 
 function onSliderChange(slider_value, id) {
@@ -750,6 +756,27 @@ function setSlidersListeners(){
     }, false);
     document.getElementById("fieldOfView_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'fieldOfView');
+    }, false);
+    document.getElementById("posX_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'posX');
+    }, false);
+    document.getElementById("posY_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'posY');
+    }, false);
+    document.getElementById("posZ_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'posZ');
+    }, false);
+    document.getElementById("lightDecay_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'lightDecay');
+    }, false);
+    document.getElementById("lightTarget_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'lightTarget');
+    }, false);
+    document.getElementById("dirTheta_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'dirTheta');
+    }, false);
+    document.getElementById("shininess_slider").addEventListener("input", function (){
+        onSliderChange(this.value, 'shininess');
     }, false);
 }
 //endregion
