@@ -588,7 +588,6 @@ function getCanvas() {
         console.log('WebGL version: ', gl.getParameter(gl.VERSION));
         console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
         console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
-        let depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
     }
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -630,16 +629,16 @@ function addRowsDelete(){
     let maps = mapHandler.getMaps();
     let i = 1;
     maps.forEach(function (map){
-        var table = document.getElementById("maps_reset_table");
+        let table = document.getElementById("maps_reset_table");
 
-        var rowCount = table.rows.length;
-        var row = table.insertRow(rowCount);
+        let rowCount = table.rows.length;
+        let row = table.insertRow(rowCount);
 
         row.insertCell(0).innerHTML= map.id;
         row.insertCell(1).innerHTML= map.name;
         let playCell = row.insertCell(2);
         playCell.innerHTML= '<input type="button" value="Delete">'
-        playCell.addEventListener("click", function (e){
+        playCell.addEventListener("click", function (){
             mapHandler.removeMap(map.id);
             deleteAllRows("maps_reset_table");
             addRowsDelete();
@@ -712,16 +711,16 @@ function addRowsPlay(){
     let maps = mapHandler.getMaps();
     let i = 1;
     maps.forEach(function (map){
-        var table = document.getElementById("maps_table");
+        let table = document.getElementById("maps_table");
 
-        var rowCount = table.rows.length;
-        var row = table.insertRow(rowCount);
+        let rowCount = table.rows.length;
+        let row = table.insertRow(rowCount);
 
         row.insertCell(0).innerHTML= map.id;
         row.insertCell(1).innerHTML= map.name;
         let playCell = row.insertCell(2);
         playCell.innerHTML= '<input type="button" value="Play">'
-        playCell.addEventListener("click", function (e){
+        playCell.addEventListener("click", function (){
             playSelected(map.id);
         });
 
