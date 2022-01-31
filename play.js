@@ -967,7 +967,7 @@ function swapPlayerModel(){
 function swapMusic(){
     if(activePlayerModel === 1){
         var prob = Math.random();
-        if (prob > 0.5) document.getElementById("audio").src = "Game/Music/playEDgy.mp3";
+        if (prob >= 0.5) document.getElementById("audio").src = "Game/Music/playEDgy.mp3";
         else document.getElementById("audio").src = "Game/Music/playEDgy2.mp3";
     } else {
         document.getElementById("audio").src = "Game/Music/play.mp3";
