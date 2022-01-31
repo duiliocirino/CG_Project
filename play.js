@@ -952,11 +952,13 @@ function swapPlayerModel(){
     if(activePlayerModel === 0){
         objects[0].drawInfo.bufferLength = meshes[7].mesh.indexBuffer.numItems;
         objects[0].drawInfo.vertexArray = vao_arr[7];
+        objects[0].drawInfo.color = settings.treeColor;
         activePlayerModel = 1;
     }
     else{
         objects[0].drawInfo.bufferLength = meshes[8].mesh.indexBuffer.numItems;
         objects[0].drawInfo.vertexArray = vao_arr[8];
+        objects[0].drawInfo.color = settings.playerColor;
         activePlayerModel = 0;
     }
     easterEgg = 0;

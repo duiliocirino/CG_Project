@@ -42,6 +42,7 @@ var settings = {
     cloudsColor: [1, 1, 1, 1],
     bricksColor: [0.51, 0.11, 0.11, 1],
     hedgeColor: [0.88, 0.88, 0.88, 1],
+    treeColor: [1, 0.647, 0.125, 1],
 
 
     playerScaleFactor: 6,
