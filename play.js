@@ -1,7 +1,6 @@
-import {Map} from "./Engine/Model/Map.js";
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
-import {SkyBox} from "./Engine/SkyBox.js";
+import {SkyBox} from "./Engine/Model/SkyBox.js";
 import {Node} from "./Engine/Model/Node.js";
 
 
@@ -137,12 +136,6 @@ async function init() {
 }
 
 function main(){
-    var dirLightAlpha = -utils.degToRad(-60);
-    var dirLightBeta  = -utils.degToRad(120);
-    var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-        Math.sin(dirLightAlpha), Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)];
-    var directionalLightColor = [0.8, 1.0, 1.0];
-
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -248,7 +241,7 @@ function sceneGraphDefinition(){
     playerNode.localMatrix = utils.multiplyMatrices(
         rotateYaxismatrix,utils.multiplyMatrices(
             utils.MakeTranslateMatrix(0, 25, 0),
-            utils.MakeScaleMatrix(settings.playerScaleFactor)));
+            utils.MakeScaleMatrix(settings.scaleFactorPlayer)));
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,

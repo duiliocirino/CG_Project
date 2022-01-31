@@ -1,7 +1,7 @@
 import {Map} from "./Engine/Model/Map.js";
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
-import {SkyBox} from "./Engine/SkyBox.js";
+import {SkyBox} from "./Engine/Model/SkyBox.js";
 import {Node} from "./Engine/Model/Node.js";
 
 // MapHandler instance

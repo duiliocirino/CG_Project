@@ -15,29 +15,38 @@
         <button onclick="location.href='index.html'">Back</button>
     </div>
     <div class="create-container">
+
         <label>Last block x: <span id="lastX">0</span></label><br>
         <label>Last block y: <span id="lastY">0</span></label><br>
-        <label>Name: </label>
+
+        <label for="newName">Name: </label>
         <input id="newName" name="name" type="text"><br>
-        <label>x: </label>
+
+        <label for="newX">x: </label>
         <input id="newX" name="x" type="number" value="0"><br>
-        <label>y: </label>
+
+        <label for="newY">y: </label>
         <input id="newY" name="y" type="number" value="0" min="0"><br>
-        <label>type: </label>
+
+        <label for="newType">type: </label>
         <select id="newType" name="type">
             <option value="0">Brick</option>
             <option value="3">CylinderIsland</option>
             <option value="6">SquareIsland</option>
         </select><br>
-        <input id="checkboxH" type="checkbox" value="1">Hedge
-        <input id="checkboxV" type="checkbox" value="9">VictoryPole<br>
-        <label>decoration: </label>
+
+        <label for="checkboxH">Hedge</label><input id="checkboxH" type="checkbox" value="1">
+
+        <label for="checkboxV">VictoryPole</label><input id="checkboxV" type="checkbox" value="9"><br>
+
+        <label for="newDecoration">decoration: </label>
         <select id="newDecoration" name="decoration">
             <option value="-1"></option>
             <option value="4">Mountain</option>
             <option value="5">Rock</option>
             <option value="7">Tree</option>
         </select><br>
+
         <button id="createButton">CREATE</button><br>
         <button id="undoButton">UNDO</button><br>
         <button id="saveButton">SAVE MAP</button>
@@ -112,20 +121,20 @@
         </div>
         <div class='gui-element'>
             <div class="gui-slider-text">ambientLight</div>
-            <div id="ambientLightvalue" class="gui-slider-value">0</div>
+            <div id="ambientLightValue" class="gui-slider-value">0</div>
             <input id="ambientLight_slider" class="gui-slider" type="range" min="0" max="100" value="0" oninput="onSliderChange(this.value, 'ambientLight');">
         </div>
         <div class='gui-element'>
             <div class="gui-subgroup-text">Specular</div>
         </div>
         <div class='gui-element'>
-            <div class="gui-slider-text">shiness</div>
-            <div id="shiness_value" class="gui-slider-value">0</div>
-            <input id="shiness_slider" class="gui-slider" type="range" min="0" max="100" value="0" oninput="onSliderChange(this.value, 'shiness');">
+            <div class="gui-slider-text">shininess</div>
+            <div id="shininess_value" class="gui-slider-value">0</div>
+            <input id="shininess_slider" class="gui-slider" type="range" min="0" max="100" value="0" oninput="onSliderChange(this.value, 'shininess');">
         </div>
     </div>
     <audio loop autoplay>
-        <source src="Game/Music/create.mp3">
+        <source src="Assets/Music/create.mp3">
     </audio>
 </body>
 </html>

@@ -14,10 +14,9 @@ class Player{
  * Object class to store information of objects other then the player about their position and their collider in the game.
  */
 class Object{
-    constructor(isHedge, isVictory, sceneObject, x, y, rangeX, rangeY) {
+    constructor(isHedge, isVictory, x, y, rangeX, rangeY) {
         this.isHedge = isHedge;
         this.isVictory = isVictory;
-        this.sceneObject = sceneObject;
         this.objectX = x;
         this.objectY = y;
         this.rangeX = rangeX;
@@ -30,8 +29,7 @@ class Object{
  * @param playerCurrPos the former player position: (the local matrix)
  * @param playerNextPos the attempted new player position: (the local matrix)
  * @param objects the objects in the scene (without the player)
- * TODO: CHECK IF PLAYER IS ALWAYS THE FIRST IN CASE PASS THE OBJECTS WITHOUT THE PLAYER. IMPORTANT!!!!!!!!!
- * @returns {{detected: boolean, speedMultiplier: [xMult, yMult], isHedge: boolean, position: localMatrix}}
+ * @returns {{speedMultiplier: number[], victory: boolean, detected: boolean, isHedge: boolean, position: localMatrix}}
  */
 function checkCollisions(playerCurrPos, playerNextPos, objects){
     let detected = false;
@@ -40,8 +38,8 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
     let victory = false;
     let result = {position: [0, 0], speedMultiplier: [1, 1]}
 
-    var oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[3]), getPlayerRangeY(playerCurrPos[7]))
-    var newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[3]), getPlayerRangeY(playerNextPos[7]))
+    let oldPlayer = new Player(playerCurrPos[3], playerCurrPos[7], getPlayerRangeX(playerCurrPos[3]), getPlayerRangeY(playerCurrPos[7]));
+    let newPlayer = new Player(playerNextPos[3], playerNextPos[7], getPlayerRangeX(playerNextPos[3]), getPlayerRangeY(playerNextPos[7]));
 
     // CHECK FOR COLLISIONS
     let collidingObjects = checkSquareCollision(newPlayer, objects);
@@ -61,7 +59,7 @@ function checkCollisions(playerCurrPos, playerNextPos, objects){
                 victory = true;
         })
         if(isHedge) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge, victory: victory};
-        if(checkVictory()) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge, victory: victory};
+        if(victory) return {detected: detected, speedMultiplier: result.speedMultiplier, position: playerNextPos, isHedge: isHedge, victory: victory};
         // IF NOT AN HEDGE
         result = calculateNewPosition(oldPlayer, newPlayer, collidingObjects);
         position = playerNextPos;
@@ -109,7 +107,7 @@ function checkCircCollision(x0, y0, r, x, y) {
  * @returns {[]} the array of objects the player collides with.
  */
 function checkSquareCollision(newPlayer, sceneObjects){
-    var objects = [];
+    let objects = [];
     sceneObjects.forEach(object => {
         let isHedge = false;
         let isVictory = false;
@@ -117,9 +115,9 @@ function checkSquareCollision(newPlayer, sceneObjects){
         if(object.gameInfo.type === 9) isVictory = true;
         let objectX = object.gameInfo.x * settings.translateFactor;
         let objectY = object.gameInfo.y * settings.translateFactor;
-        objects.push(new Object(isHedge, isVictory, object, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));
+        objects.push(new Object(isHedge, isVictory, objectX, objectY, getObjectRangeX(isHedge, objectX), getObjectRangeY(isHedge, objectY)));
     })
-    var collidingObjects = [];
+    let collidingObjects = [];
     objects.forEach(object => {
         if(((newPlayer.rangeX[0] >= object.rangeX[0]) && (newPlayer.rangeX[0] <= object.rangeX[1]) ||
             (newPlayer.rangeX[1] >= object.rangeX[0]) && (newPlayer.rangeX[1] <= object.rangeX[1]))
@@ -133,43 +131,50 @@ function checkSquareCollision(newPlayer, sceneObjects){
     return collidingObjects;
 }
 
+/**
+ * Method used in order to get the y-axis boundaries of the specified object's box collider.
+ * @param isHedge: if the object isHedge apply a different calculation.
+ * @param objectX: the x position of the object.
+ * @returns {(number|*)[]}
+ */
 function getObjectRangeX(isHedge, objectX){
     if(isHedge)
         return [objectX - settings.hedgesColliderX, objectX + settings.hedgesColliderX];
     return [objectX - settings.blocksColliderX, objectX + settings.blocksColliderX];
 }
 
+/**
+ * Method used in order to get the y-axis boundaries of the specified object's box collider.
+ * @param isHedge: if the object isHedge apply a different calculation.
+ * @param objectY: the y position of the object.
+ * @returns {(number|*)[]|*[]}
+ */
 function getObjectRangeY(isHedge, objectY){
     if(isHedge)
         return [objectY - settings.hedgesColliderX + settings.translateFactor, objectY + settings.hedgesColliderX + settings.translateFactor];
     return [objectY, objectY + settings.blocksColliderY];
 }
 
-function checkVictory(){
-
-}
-
 /**
  * This method is used to compute the effective position of the player in the case it collides with another object.
- * @param prevPlayer Object class, the former player position.
- * @param newPlayer Object class, the colliding player position.
- * @param object Object class, the object which the player collides with.
+ * @param prevPlayer: Object class, the former player position.
+ * @param newPlayer: Object class, the colliding player position.
+ * @param objects: Object class, the object which the player collides with.
  * @returns array: position[x, y]
  */
 function calculateNewPosition(prevPlayer, newPlayer, objects){
-    var x;
-    var y;
-    var xs = [];
-    var ys = [];
-    var faces = [];
-    var speedMultiplier = [1, 1];
+    let x;
+    let y;
+    let xs = [];
+    let ys = [];
+    let faces = [];
+    let speedMultiplier = [1, 1];
 
     objects.forEach(object => {
         let versor = getVersor(prevPlayer.objectX, prevPlayer.objectY, newPlayer.objectX, newPlayer.objectY);
-        var face = getCollidingFace(object, newPlayer, versor);
-        var tempX;
-        var tempY;
-        let rect = getRect(prevPlayer.objectX, prevPlayer.objectY, newPlayer.objectX, newPlayer.objectY);
+        let face = getCollidingFace(object, newPlayer, versor);
+        let tempX;
+        let tempY;
 
         if(face === "down"){
             tempY = object.rangeY[0] - settings.playerColliderY;
@@ -229,32 +234,18 @@ function calculateNewPosition(prevPlayer, newPlayer, objects){
  * @returns numbers: [xDir, yDir]
  */
 function getVersor(prevPlayerX, prevPlayerY, newPlayerX, newPlayerY){
-    var numbers;
+    let numbers;
     numbers = [Math.sign(newPlayerX - prevPlayerX), Math.sign(newPlayerY - prevPlayerY)];
     return numbers;
 }
 
 /**
- * This method calculates the rect given the two player positions, old and former new one.
- * The rect is of the form : ax + bx + c = 0, where:
- * a = rect[0]
- * b = rect[1]
- * c = rect[2]
+ * This method is responsible of calculating which face of the object is involved in the collision with the player.
+ * @param object: the object with which the player collides.
+ * @param player: instance of the player.
+ * @param versor: the x-y direction of the player.
+ * @returns {string}: up, down, left or right.
  */
-function getRect(prevPlayerX, prevPlayerY, newPlayerX, newPlayerY){
-    return [newPlayerY - prevPlayerY,
-            prevPlayerX - newPlayerX,
-            (newPlayerX - prevPlayerX) * prevPlayerY + (prevPlayerY - newPlayerY) * prevPlayerX]
-}
-
-function getXgivenY(y, rect){
-    return (-rect[1] * y - rect[2]) / rect[0];
-}
-
-function getYgivenX(x, rect){
-    return (-rect[0] * x - rect[2]) / rect[1];
-}
-
 function getCollidingFace(object, player, versor){
     if(versor[1] > 0){
         if(versor[0] > 0){

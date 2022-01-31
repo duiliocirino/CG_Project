@@ -3,12 +3,9 @@
  */
 
 var settings = {
-    /** directories */
-    baseDir:null,
-    shaderDir:null,
-    assetDir:null,
-    skyboxDir: null,
-    /** variables  */
+    /**
+     * Colliders' value
+     */
     playerColliderX: 4,
     playerColliderY: 5,
     blocksColliderX: 8.5,
@@ -16,6 +13,9 @@ var settings = {
     hedgesColliderX: 10,
     hedgesColliderY: 10,
 
+    /**
+     * Translate values
+     */
     translateFactor: 17,
     translateOffsetBrick: [0, -3.2, 0],
     translateOffsetHedge: [0, 0, 0],
@@ -26,6 +26,10 @@ var settings = {
     translateOffsetRock: [0, 0, 0],
     translateOffsetFlagpole: [0,40,0],
 
+    /**
+     * Scaling values
+     */
+    scaleFactorPlayer: 6,
     scaleFactorBrick: [0.77, 0.77, 0.77],
     scaleFactorHedge: [0.65, 2.05, 1],
     scaleFactorCloud: [1, 1, 1],
@@ -35,17 +39,18 @@ var settings = {
     scaleFactorRock: [1, 1, 1],
     scaleFactorFlagpole: [0.2, 0.2, 0.2],
 
-
-
-    /** Objects color */
+    /**
+     * Objects special colors
+     */
     playerColor: [0.98, 0.98, 0.98, 1],
     cloudsColor: [1, 1, 1, 1],
     bricksColor: [0.51, 0.11, 0.11, 1],
     hedgeColor: [0.88, 0.88, 0.88, 1],
     treeColor: [1, 0.647, 0.125, 1],
 
-
-    playerScaleFactor: 6,
+    /**
+     * Clouds' parameters
+     */
     cloudBaseNumber: 4,
     //cloudHeightFactor: 70, //factor that is multiplied to the random number generated for the height of the clouds
     cloudTranslateFactor: 7, //the horizontal displacement of the clouds from x = 0
@@ -53,10 +58,14 @@ var settings = {
     cloudsBackDespawnFactor: 280,
     cloudsFrontRespawnFactor: 450,
 
+    /**
+     * Hedges' parameters
+     */
     hedgeDisplacement: [-6, 0, 6],
 
-
-    /**Player movement values*/
+    /**
+     * Player movement values
+     */
     horizontalSpeedCap: 5,
     verticalSpeedCap: 5,
     gravity: -0.1,
@@ -69,7 +78,6 @@ var settings = {
     startingLives: 5,
     horizontalBound: -60,
     verticalBound: -100,
-
     activeHedgesTime: 2,
     hedgesHeight: 6,
 
@@ -78,38 +86,47 @@ var settings = {
      */
     lastMapId: 0,
 
-    /** camera parameters Main */
+    /**
+     * camera parameters Main
+     */
     cameraGamePosition: [0.0, 7.0, 4.0],
     cameraPosition: [0.0, -20, 200.0],
     target: [0.0, 0.0, 0.0],
     up: [0.0, 1.0, 0.0],
     fieldOfView: 60,
 
-    /** Camera Parameters Create */
+    /**
+     * Camera Parameters Create
+     */
     createCameraPosition: [0.0, -20.0, 200.0],
     createCameraTarget: [0.0, 0.0, 0.0],
     createCameraUp: [0.0, 1.0, 0.0],
 
-    /** Camera Parameters Play */
+    /**
+     * Camera Parameters Play
+     */
     playCameraPosition: [0.0, 20.0, 200.0],
     playCameraTarget: [0.0, 0.0, 0.0],
     playCameraUp: [0.0, 1.0, 0.0],
 
     /** Camera presets
-     * each preset needs 3 values for the camera position and the camera up */
-
+     * each preset needs 3 values for the camera position and the camera up
+     */
     cameraPresets :
     [
       [[-10, 5, 200.0],[0.0, 1.0, 0.0]],
-      [[-50, 0.0, 200.0],[0.0, 1.0, 0.0]],
-      [[35, 0.0, 200.0],[0.0, 1.0, 0.0]]
+      [[-50, 15, 200.0],[0.0, 1.0, 0.0]],
+      [[40, 10, 200.0],[0.0, 1.0, 0.0]]
     ],
 
+    /**
+     * Textures information.
+     */
+    textureSrc: ["Graphics/Models/Terrain-Texture_2.png", "Graphics/Models/Flagpole.png"],
 
-    /** object positions */
-    //Insert objects starting positions if necessary
-
-    /** lights */
+    /**
+     * Lights parameters
+     */
     //point
     pointLightColor: [0.8, 0.8, 0.8],
     pointLightPosition: [2.0, 5.0, 3.0],
@@ -125,11 +142,20 @@ var settings = {
     //specular
     shiness: 500,
 
-    /** background */
+    /**
+     * background
+     */
     backgroundColor: [0.8, 0.8, 0.8, 1.0],
 
     useEnvironment:true,
 
+
+    /**
+     * This method is used to get the TranslateOffset given the type of the object.
+     * @param type: the code corresponding to the requested object.
+     * @returns {number[]|*}
+     * @constructor
+     */
     GetTranslateByType: function(type) {
         if (type === 0) {
             return settings.translateOffsetBrick
@@ -160,6 +186,12 @@ var settings = {
         }
     },
 
+    /**
+     * This method is used to get the ScaleFactor given the type of the object.
+     * @param type: the code corresponding to the requested object.
+     * @returns {number[]|*}
+     * @constructor
+     */
     GetScaleByType: function(type) {
         if (type === 0) {
             return settings.scaleFactorBrick
@@ -191,63 +223,24 @@ var settings = {
     },
 
     changeCamera: function(cameraMode){
-    if(cameraMode > settings.cameraPresets.size){
-        settings.setCameraValues(0)
-        return
-    }
-    settings.setCameraValues(cameraMode)
+        if(cameraMode > settings.cameraPresets.size){
+            settings.setCameraValues(0)
+            return
+        }
+        settings.setCameraValues(cameraMode)
     },
 
     setCameraValues: function(index){
-    settings.playCameraPosition[0] = settings.cameraPresets[index][0][0]
-    settings.playCameraPosition[1] = settings.cameraPresets[index][0][1]
-    settings.playCameraPosition[2] = settings.cameraPresets[index][0][2]
-    settings.playCameraUp[0] = settings.cameraPresets[index][1][0]
-    settings.playCameraUp[1] = settings.cameraPresets[index][1][1]
-    settings.playCameraUp[2] = settings.cameraPresets[index][1][2]
+        settings.playCameraPosition[0] = settings.cameraPresets[index][0][0]
+        settings.playCameraPosition[1] = settings.cameraPresets[index][0][1]
+        settings.playCameraPosition[2] = settings.cameraPresets[index][0][2]
+        settings.playCameraUp[0] = settings.cameraPresets[index][1][0]
+        settings.playCameraUp[1] = settings.cameraPresets[index][1][1]
+        settings.playCameraUp[2] = settings.cameraPresets[index][1][2]
+    }
+
+
 }
-
-
-}
-
-//Definition of the structure used as scene graph (example taken from webGLTutorial2)
-var Node = function () {
-    this.children = [];
-    this.localMatrix = utils.identityMatrix();
-    this.worldMatrix = utils.identityMatrix();
-};
-
-Node.prototype.setParent = function (parent) {
-    // remove us from our parent
-    if (this.parent) {
-        var ndx = this.parent.children.indexOf(this);
-        if (ndx >= 0) {
-            this.parent.children.splice(ndx, 1);
-        }
-    }
-
-    // Add us to our new parent
-    if (parent) {
-        parent.children.push(this);
-    }
-    this.parent = parent;
-};
-
-Node.prototype.updateWorldMatrix = function (matrix) {
-    if (matrix) {
-        // a matrix was passed in so do the math
-        this.worldMatrix = utils.multiplyMatrices(matrix, this.localMatrix);
-    } else {
-        // no matrix was passed in so just copy.
-        utils.copy(this.localMatrix, this.worldMatrix);
-    }
-
-    // now process all the children
-    var worldMatrix = this.worldMatrix;
-    this.children.forEach(function (child) {
-        child.updateWorldMatrix(worldMatrix);
-    });
-};
 
 var settingObj = function (max, positiveOnly, value){
     this.id = null;

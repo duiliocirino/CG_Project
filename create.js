@@ -1,79 +1,115 @@
-import {Map} from "./Engine/Model/Map.js";
+//#region Imports
 import {Block} from "./Engine/Model/Block.js";
 import {MapHandler} from "./Engine/Model/MapHandler.js";
-import {SkyBox} from "./Engine/SkyBox.js";
+import {SkyBox} from "./Engine/Model/SkyBox.js";
 import {Node} from "./Engine/Model/Node.js";
+//endregion
 
-// MapHandler instance
-var mapHandler = new MapHandler();
-// New Map instance
-var map;
-//
-var baseDir;
+//#region Variables
+/**
+ * MapHandler instance.
+ */
+let mapHandler = new MapHandler();
 
-var gl;
+/**
+ * New Map instance.
+ */
+let map;
 
-//Program used to render
-var program;
+/**
+ * String containing the name of the base directory of the application.
+ */
+let baseDir;
 
-//VAO
-var vao_arr = []; //data structure containing all the VAO (one for each type of obj)
+/**
+ * WebGLRenderingContext variable instance.
+ */
+let gl;
 
-//MESHES
-var meshes = [];
+/**
+ * WebGL Program variable instance.
+ */
+let program;
 
-//OBJECTS
-var objects = []; // list of objects to be rendered
-var backgroundObjects = [];
-var worldSpace;
-var mapSpace;
-var backgroundSpace;
+/**
+ * Instances of the Vertex Array Objects in the scene.
+ * @type {*[]}
+ */
+let vao_arr = []; //data structure containing all the VAO (one for each type of obj)
+
+/**
+ * Instances of the meshes of the objects loaded in the scene.
+ * @type {*[]}
+ */
+let meshes = [];
+
+/**
+ * Arrays containing the instances of the objects to be rendered in the scene.
+ * objects: the objects of the interactive part of the scene.
+ * backgroundObjects: the objects of the non-interactive part of the scene.
+ */
+let objects = [];
+let backgroundObjects = [];
+
+/**
+ * The instances of the two main nodes of the sceneGraph.
+ */
+let worldSpace;
+let mapSpace;
 
 //utility
-var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
+let rotateYaxisMatrix = utils.MakeRotateYMatrix(180);
 
-//STAGE
-var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
+/**
+ * Instances of the textures and relative texture to be used in the application.
+ * @type {*[]}
+ */
+let texture = [];
+let image = [];
 
-//TEXTURES and BUFFERS
-var texture = [];
-var image = [];
+/**
+ * Instances of the locations of all the attribute and uniforms in the WebGLProgram.
+ */
+let positionAttributeLocation;
+let uvAttributeLocation;
+let normalAttributeLocation;
 
-//ATTRIBUTES AND UNIFORMS
-var positionAttributeLocation;
-var uvAttributeLocation;
-var normalAttributeLocation;
+let colorUniformLocation;
+let isColorPresentBooleanLocation;
 
-var colorUniformLocation;
-var isColorPresentBooleanLocation;
+let wvpMatrixLocation;
+let positionMatrixLocation;
+let normalMatrixLocation;
 
-var wvpMatrixLocation;
-var positionMatrixLocation;
-var normalMatrixLocation;
+let cameraPositionHandle;
 
-var ambientLightHandle;
-var textureUniformLocation;
-var shinessHandle;
-var cameraPositionHandle;
-var pointLightPositionHandle;
-var pointLightColorHandle;
-var pointLightTargetHandle;
-var pointLightDecayHandle;
-var directLightColorHandle;
-var directLightDirectionHandle;
+let ambientLightHandle;
+let textureUniformLocation;
+let shininessHandle;
 
+let pointLightPositionHandle;
+let pointLightColorHandle;
+let pointLightTargetHandle;
+let pointLightDecayHandle;
 
-//SKYBOX
-var skyBox = new SkyBox();
+let directLightColorHandle;
+let directLightDirectionHandle;
+
+/**
+ * Instance of the SkyBox.
+ * @type {SkyBox}
+ */
+let skyBox = new SkyBox();
+//endregion
 
 //#region Init and Main
 
 /**
- * Entry point of the WebGL program
+ * Entry point of the WebGL program.
  */
 async function init() {
-    var path = window.location.pathname;
-    var page = path.split("/").pop();
+    const path = window.location.pathname;
+    const page = path.split("/").pop();
     baseDir = window.location.href.replace(page, '');
     settings.shaderDir = baseDir + "Graphics/Shaders/"; //Shader files will be put in the shaders folder
     settings.skyboxDir = baseDir + "Graphics/Env/"; //Skybox directories
@@ -85,15 +121,15 @@ async function init() {
     //Compile and Link Shaders
     //load shaders from file
     await utils.loadFiles([settings.shaderDir + 'vs.glsl', settings.shaderDir + 'fs.glsl'], function (shaderText) {
-        var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
-        var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+        let vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+        let fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
         program = utils.createProgram(gl, vertexShader, fragmentShader);
     });
 
     gl.useProgram(program);
 
     //Load object
-    var objectFile = await fetch("Engine/blocks.json");
+    let objectFile = await fetch("Engine/blocks.json");
     await loadObjects(objectFile);
 
     //load Texture
@@ -102,13 +138,10 @@ async function init() {
     main();
 }
 
+/**
+ * This method is used to set all the variables that will be used by the application to work.
+ */
 function main(){
-    var dirLightAlpha = -utils.degToRad(-60);
-    var dirLightBeta  = -utils.degToRad(120);
-    var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
-        Math.sin(dirLightAlpha), Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)];
-    var directionalLightColor = [0.8, 1.0, 1.0];
-
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -121,10 +154,6 @@ function main(){
     createVaos();
 
     setGuiListeners();
-    setSlidersListeners();
-
-    document.addEventListener("keydown", onKeyDown, false);
-    document.addEventListener("keyup", onKeyUp, false); //not used for now
 
     skyBox.loadEnvironment(gl);
 
@@ -134,8 +163,11 @@ function main(){
 }
 //#endregion
 
-
 //#region Program Initialization
+
+/**
+ * This method gets the location of all Attributes and Uniforms of the GLProgram.
+ */
 function getAttributesAndUniformLocation(){
     positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
     normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
@@ -156,12 +188,15 @@ function getAttributesAndUniformLocation(){
     directLightColorHandle = gl.getUniformLocation(program, "u_directLightColor");
     directLightDirectionHandle = gl.getUniformLocation(program, "u_directLightDirection");
     ambientLightHandle = gl.getUniformLocation(program, 'u_ambientLight');
-    shinessHandle = gl.getUniformLocation(program, "u_shininess");
+    shininessHandle = gl.getUniformLocation(program, "u_shininess");
 }
 
+/**
+ * This function creates a Vertex Array Object for each mesh and saves it.
+ */
 function createVaos(){
     meshes.forEach(mesh => {
-        var vao = gl.createVertexArray();
+        const vao = gl.createVertexArray();
         gl.bindVertexArray(vao);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, mesh.mesh.vertexBuffer);
@@ -182,28 +217,10 @@ function createVaos(){
     });
 }
 
+/**
+ * This method creates the scene graph and the related spaces and nodes.
+ */
 function sceneGraphDefinition(){
-    /*worldNode = new Node();
-    var objectNode = new Node();
-    objectNode.localMatrix = utils.MakeScaleMatrix(1,1,1);
-    objectNode.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6]
-    };
-    var objectNode2 = new Node();
-    objectNode2.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(-20,0,0), utils.MakeScaleMatrix(1,1,1));
-    objectNode2.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6]
-    };
-
-    objectNode.setParent(worldNode);
-    objectNode2.setParent(worldNode)
-    objects.push(objectNode);
-    objects.push(objectNode2);*/
-
     map = mapHandler.createMap();
     map.addPlayable(new Block(0,0, 6));
 
@@ -212,9 +229,9 @@ function sceneGraphDefinition(){
 
     var playerNode = new Node();
     playerNode.localMatrix = utils.multiplyMatrices(
-        rotateYaxismatrix,utils.multiplyMatrices(
+        rotateYaxisMatrix,utils.multiplyMatrices(
             utils.MakeTranslateMatrix(0, 25, 0),
-            utils.MakeScaleMatrix(settings.playerScaleFactor)));
+            utils.MakeScaleMatrix(settings.scaleFactorPlayer)));
     playerNode.drawInfo = {
         programInfo: program,
         bufferLength: meshes[8].mesh.indexBuffer.numItems,
@@ -228,32 +245,49 @@ function sceneGraphDefinition(){
     mapSpace = new Node();
     mapSpace.setParent(worldSpace);
 
-    map.playableObjects.forEach(function(element){
-        const xPos = element.position[0];
-        const yPos = element.position[1];
-        CreateNode(xPos, yPos, element.type);
-    });
+    let x = map.playableObjects[0].position[0];
+    let y = map.playableObjects[0].position[1];
+    let type = map.playableObjects[0].type;
+    let node = CreateNode(x, y, 0, type, 0);
+    node.setParent(mapSpace);
+    map.addPlayable(new Block(x, y, type));
+    objects.push(node);
 }
 //endregion
 
+//#region Rendering
+/**
+ * This is the rendering part of the program that will be drawn on the canvas at each frame.
+ */
 function drawScene(){
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Compute the projection matrix
-    var aspect = gl.canvas.width / gl.canvas.height;
-    var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
+    let aspect = gl.canvas.width / gl.canvas.height;
+    let projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
 
-    // Compute the camera matrix using look at.
-    var cameraMatrix = utils.LookAt(settings.createCameraPosition, settings.createCameraTarget, settings.createCameraUp);
-    var viewMatrix = utils.invertMatrix(cameraMatrix);
+    let cameraMatrix = utils.LookAt(settings.createCameraPosition, settings.createCameraTarget, settings.createCameraUp);
+    let viewMatrix = utils.invertMatrix(cameraMatrix);
 
-    var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
+    let viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
 
     worldSpace.updateWorldMatrix();
 
     skyBox.InitializeAndDraw();
 
+    objectDrawing(objects, viewProjectionMatrix)
+    objectDrawing(backgroundObjects, viewProjectionMatrix);
+
+    requestAnimationFrame(drawScene);
+}
+
+/**
+ * This method gets an array of object to draw on the canvas and sets all the attributes and uniforms in order for each
+ * object to be properly drawn.
+ * @param objects: array of object to draw.
+ * @param viewProjectionMatrix: the view-projection matrix previously calculated.
+ */
+function objectDrawing(objects, viewProjectionMatrix){
     objects.forEach(function(object) {
         gl.useProgram(object.drawInfo.programInfo);
 
@@ -273,7 +307,7 @@ function drawScene(){
         }
 
         gl.uniform3fv(ambientLightHandle, settings.ambientLight);
-        gl.uniform1f(shinessHandle, settings.shiness);
+        gl.uniform1f(shininessHandle, settings.shiness);
         gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
         gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
         gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
@@ -289,44 +323,8 @@ function drawScene(){
         gl.bindVertexArray(object.drawInfo.vertexArray);
         gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
     });
-
-    backgroundObjects.forEach(function(object) {
-        gl.useProgram(object.drawInfo.programInfo);
-
-        var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
-        var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
-
-        gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
-        gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
-        gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
-
-        gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
-
-        if(object.drawInfo.isColorPresent){
-            gl.uniform1f(isColorPresentBooleanLocation,1.0);
-        }else{
-            gl.uniform1f(isColorPresentBooleanLocation, 0.0);
-        }
-
-        gl.uniform3fv(ambientLightHandle, settings.ambientLight);
-        gl.uniform1f(shinessHandle, settings.shiness);
-        gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
-        gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
-        gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
-        gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
-        gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
-        gl.uniform3fv(directLightColorHandle, settings.directLightColor);
-        gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
-        gl.uniform1i(textureUniformLocation, 0);
-
-        gl.bindVertexArray(object.drawInfo.vertexArray);
-        gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
-    });
-    requestAnimationFrame(drawScene);
 }
+//endregion
 
 //#region Obj Load and Textures
 
@@ -336,9 +334,9 @@ function drawScene(){
  * @returns {Promise<*[]>} an array containing all the meshes of the loaded obj files
  */
 async function loadObjects(file) {
-    var text = await file.text();
-    var objectsJ = JSON.parse(text);
-    var objStr = [];
+    let text = await file.text();
+    let objectsJ = JSON.parse(text);
+    let objStr = [];
     meshes = [];
     for (let i = 0; i< objectsJ.length; i++){
         objStr[i] = await utils.get_objstr(objectsJ[i]);
@@ -350,45 +348,36 @@ async function loadObjects(file) {
     }
 }
 
-function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
-    texture[0] = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture[0]);
-    image[0] = new Image();
-    image[0].src = "Graphics/Models/Terrain-Texture_2.png";
-    image[0].onload = function () {
+/**
+ * This method loads all the textures in the corresponding variable ready to be used.
+ */
+function setupTextures() {
+    for(let i = 0; i < settings.textureSrc.length; i++){
+        texture[i] = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture[0]);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[0]);
+        image[i] = new Image();
+        image[i].src = settings.textureSrc[i];
+        image[i].onload = function () {
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture[i]);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[i]);
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
-        gl.generateMipmap(gl.TEXTURE_2D);
-    };
-
-    texture[1] = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture[1]);
-    image[1] = new Image();
-    image[1].src = "Graphics/Models/Flagpole.png";
-    image[1].onload = function () {
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture[1]);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image[1]);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-        gl.generateMipmap(gl.TEXTURE_2D);
-    };
+            gl.generateMipmap(gl.TEXTURE_2D);
+        };
+    }
 }
 
 //endregion
 
 //#region Canvas
+/**
+ * This method gets the canvas element in the HTML page and prepares its interaction with the WebGL context.
+ */
 function getCanvas() {
     var canvas = document.getElementById("canvas");
     gl = canvas.getContext("webgl2")
@@ -399,7 +388,6 @@ function getCanvas() {
         console.log('WebGL version: ', gl.getParameter(gl.VERSION));
         console.log('WebGL vendor : ', gl.getParameter(gl.VENDOR));
         console.log('WebGL supported extensions: ', gl.getSupportedExtensions());
-        let depth_texture_extension = gl.getExtension('WEBGL_depth_texture');
     }
     utils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -410,10 +398,11 @@ function getCanvas() {
 
 //endregion
 
+//#region Object creation functions
 /**
- * UTILITY FUNCTIONS
+ * This function is responsible of handling a user's request to add a certain block to the map and to the scene given
+ * the parameters he entered in the creation container of the page.
  */
-
 function addBlock(){
     let x = parseInt(document.getElementById("newX").value);
     let y = parseInt(document.getElementById("newY").value);
@@ -426,56 +415,45 @@ function addBlock(){
         CreateDecorationNode(x, y, decoration);
     }
 
-    if(isHedgePresent)
+    if(isHedgePresent) {
         CreateHedgeNode(x, y);
-    if(isVictoryPresent)
+    }
+
+    if (isVictoryPresent)
         CreatePole(x, y);
 
     if(map.checkIfOtherBlockIsPresent(x, y)) return;
 
-    CreateNode(x, y, type);
+    let node = CreateNode(x, y, 0, type, 0);
+    node.setParent(mapSpace);
+    map.addPlayable(new Block(x, y, type));
+    objects.push(node);
 
     document.getElementById("lastX").textContent = x.toString();
     document.getElementById("lastY").textContent = y.toString();
 }
 
-function CreateDecorationNode(x, y, type){
-    var z = -settings.translateFactor;
-    var translateFactor = settings.translateFactor;
-    var translateOffset = settings.GetTranslateByType(type);
-    var scaleFactor = settings.GetScaleByType(type);
+/**
+ * This function creates the node that is requested to be added to the scene.
+ * @param x: the x position of the new object.
+ * @param y: the y position of the new object.
+ * @param z: the z position of the new object.
+ * @param type: the mesh type of the new object.
+ * @param textureNo: the texture that must be applied to the new object, if any.
+ * @returns {Node}: the node object created.
+ * @constructor
+ */
+function CreateNode(x, y, z, type, textureNo){
+    let translateFactor = settings.translateFactor
+    let translateOffset = settings.GetTranslateByType(type);
+    let scaleFactor = settings.GetScaleByType(type);
 
-    let node = new Node();
-    node.localMatrix =
-        utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(
-                x * translateFactor,
-                y * translateFactor,
-                z),
-            utils.MakeScaleMatrixXYZ(1,settings.scaleFactorSquareIsland[1],1));
-    node.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6],
-        texture: texture[0]
-    }
-    if(type === 0){
-        node.drawInfo.color = settings.bricksColor;
-        node.drawInfo.isColorPresent= true;
-    }else{
-        node.drawInfo.color = [0,0,0,1];
-        node.drawInfo.isColorPresent = false;
-    }
-    node.setParent(mapSpace);
-    map.addBackgroundObject(new Block(x, y, 6));
-    backgroundObjects.push(node);
-
-    node = new Node();
+    const node = new Node();
     node.localMatrix =
         utils.multiplyMatrices(
             utils.MakeTranslateMatrix(
                 x * translateFactor + translateOffset[0],
-                (y+1) * translateFactor + translateOffset[1],
+                y * translateFactor + translateOffset[1],
                 z + translateOffset[2]),
             utils.MakeScaleMatrixXYZ(
                 scaleFactor[0],
@@ -485,7 +463,7 @@ function CreateDecorationNode(x, y, type){
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
         vertexArray: vao_arr[type],
-        texture: texture[0]
+        texture: texture[textureNo]
     }
     if(type === 0){
         node.drawInfo.color = settings.bricksColor;
@@ -494,83 +472,55 @@ function CreateDecorationNode(x, y, type){
         node.drawInfo.color = [0,0,0,1];
         node.drawInfo.isColorPresent = false;
     }
+
+    return node;
+}
+
+/**
+ * This method adds a decoration to the map.
+ * @param x: the x position of the new backgroundObject.
+ * @param y: the y position of the new backgroundObject.
+ * @param type: the mesh type of the new backgroundObject.
+ * @constructor
+ */
+function CreateDecorationNode(x, y, type){
+    // Set z level
+    let z = -settings.translateFactor;
+    // Instantiate SquareIsland under decoration
+    let node = CreateNode(x, y, z, 6, 0);
+    node.setParent(mapSpace);
+    map.addBackgroundObject(new Block(x, y, 6));
+    backgroundObjects.push(node);
+    // Instantiate decoration
+    node = CreateNode(x, y + 1, z, type, 0);
     node.setParent(mapSpace);
     map.addBackgroundObject(new Block(x, y + 1, type));
     backgroundObjects.push(node);
 }
 
-function CreateNode(x, y, type){
-    var z = 0;
-    var translateFactor = settings.translateFactor
-    var translateOffset = settings.GetTranslateByType(type);
-    var scaleFactor = settings.GetScaleByType(type);
-
-    const node = new Node();
-    node.localMatrix =
-        utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(
-                x * translateFactor + translateOffset[0],
-                y * translateFactor + translateOffset[1],
-                0 + translateOffset[2]),
-            utils.MakeScaleMatrixXYZ(
-                scaleFactor[0],
-                scaleFactor[1],
-                scaleFactor[2]));
-    node.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[type].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[type],
-        texture: texture[0]
-    }
-    if(type === 0){
-        node.drawInfo.color = settings.bricksColor;
-        node.drawInfo.isColorPresent= true;
-    }else{
-        node.drawInfo.color = [0,0,0,1];
-        node.drawInfo.isColorPresent = false;
-    }
-
-    node.setParent(mapSpace);
-    map.addPlayable(new Block(x, y, type));
-    objects.push(node);
-}
-
+/**
+ * This method adds a decoration to the map.
+ * @param x: the x position of the new pole.
+ * @param y: the y position of the new pole.
+ * @constructor
+ */
 function CreatePole(x, y){
-    var z = 0;
-    var translateFactor = settings.translateFactor
-    var translateOffset = settings.GetTranslateByType(9);
-    var scaleFactor = settings.GetScaleByType(9);
-
-    const node = new Node();
-    node.localMatrix =
-        utils.multiplyMatrices(
-            utils.MakeTranslateMatrix(
-                x * translateFactor + translateOffset[0],
-                y * translateFactor + translateOffset[1],
-                0 + translateOffset[2]),
-            utils.MakeScaleMatrixXYZ(
-                scaleFactor[0],
-                scaleFactor[1],
-                scaleFactor[2]));
-    node.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[9].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[9],
-        texture: texture[1],
-        color: [0.5, 0.5, 0.5],
-        isColorPresentBooleanLocation: false
-    }
-
+    let node = CreateNode(x, y, 0, 9, 1);
     node.setParent(mapSpace);
     map.addPlayable(new Block(x, y, 9));
     objects.push(node);
 }
 
+/**
+ * This method adds a hedge to the map.
+ * @param x: the x position of the new hedge.
+ * @param y: the y position of the new hedge.
+ * @constructor
+ */
 function CreateHedgeNode(x, y){
-    var z = 0;
-    var translateFactor = settings.translateFactor;
-    var translateOffset = settings.GetTranslateByType(1);
-    var scaleFactor = settings.GetScaleByType(1);
+    let translateFactor = settings.translateFactor;
+    let translateOffset = settings.GetTranslateByType(1);
+    let scaleFactor = settings.GetScaleByType(1);
 
     for(let i = 0; i < 3; i++){
         let node = new Node();
@@ -597,6 +547,16 @@ function CreateHedgeNode(x, y){
     }
     map.addPlayable(new Block(x, y, 1));
 }
+//endregion
+
+//#region Event Listeners
+
+function setGuiListeners(){
+    document.getElementById("createButton").addEventListener("click", addBlock);
+    document.getElementById("undoButton").addEventListener("click", undoBlock);
+    document.getElementById("saveButton").addEventListener("click", saveMap);
+    setSlidersListeners();
+}
 
 function saveMap(){
     let mapName = document.getElementById("newName").value;
@@ -615,18 +575,6 @@ function undoBlock(){
     objects.pop();
     document.getElementById("lastX").textContent = map.playableObjects[map.playableObjects.length - 1].position[0].toString();
     document.getElementById("lastY").textContent = map.playableObjects[map.playableObjects.length - 1].position[1].toString();
-}
-
-/**
- * EVENT LISTENERS
- */
-
-function setGuiListeners(){
-    document.getElementById("createButton").addEventListener("click", addBlock);
-
-    document.getElementById("undoButton").addEventListener("click", undoBlock);
-
-    document.getElementById("saveButton").addEventListener("click", saveMap);
 }
 
 function onKeyDown(event){
@@ -713,14 +661,9 @@ function onKeyUp(event){
     }
 }
 
-/**
- * EVENT LISTENERS
- */
-
-var settingObj = function (max, positiveOnly, value){
+let settingObj = function (max, positiveOnly, value){
     this.id = null;
     this.max=max;
-    this.positiveOnly=positiveOnly;
     this.value=value;
     this.locked = false;
 }
@@ -742,7 +685,7 @@ settingObj.prototype.lock= function(){
     document.getElementById(this.id+'_slider').disabled=true;
 }
 
-//TODO ricontrolla per valori corretti
+//TODO check for right values
 const gui_settings = {
     'cameraX': new settingObj(50, false, settings.cameraPosition[0]),
     'cameraY': new settingObj(50, false, settings.cameraPosition[1]),
@@ -776,27 +719,28 @@ function onSliderChange(slider_value, id) {
 }
 
 function setSlidersListeners(){
-    document.getElementById("cameraX_slider").addEventListener("input", function (event){
+    document.getElementById("cameraX_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'cameraX');
     }, false);
-    document.getElementById("cameraY_slider").addEventListener("input", function (event){
+    document.getElementById("cameraY_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'cameraY');
     }, false);
-    document.getElementById("cameraZ_slider").addEventListener("input", function (event){
+    document.getElementById("cameraZ_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'cameraZ');
     }, false);
-    document.getElementById("ambientLight_slider").addEventListener("input", function (event){
+    document.getElementById("ambientLight_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'ambientLight');
     }, false);
-    document.getElementById("dirPhi_slider").addEventListener("input", function (event){
+    document.getElementById("dirPhi_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'dirPhi');
     }, false);
-    document.getElementById("dirTheta_slider").addEventListener("input", function (event){
+    document.getElementById("dirTheta_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'dirTheta');
     }, false);
-    document.getElementById("fieldOfView_slider").addEventListener("input", function (event){
+    document.getElementById("fieldOfView_slider").addEventListener("input", function (){
         onSliderChange(this.value, 'fieldOfView');
     }, false);
 }
+//endregion
 
 window.onload = init();
