@@ -58,6 +58,9 @@ let worldSpace;
 let mapSpace;
 
 //utility
+/**
+ * Matrix used to rotate 180 degrees the player model.
+ */
 let rotateYaxisMatrix = utils.MakeRotateYMatrix(180);
 
 /**

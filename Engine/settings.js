@@ -222,6 +222,11 @@ var settings = {
         }
     },
 
+    /**
+     * This method sets the position vector and the up vector of the camera
+     * according to a preset.
+     * @param cameraMode the number of the preset to apply to the camera
+     */
     changeCamera: function(cameraMode){
         if(cameraMode > settings.cameraPresets.size){
             settings.setCameraValues(0)
@@ -230,6 +235,10 @@ var settings = {
         settings.setCameraValues(cameraMode)
     },
 
+    /**
+     * Changes the camera position and up values.
+     * @param index is the preset number from the camera preset list.
+     */
     setCameraValues: function(index){
         settings.playCameraPosition[0] = settings.cameraPresets[index][0][0]
         settings.playCameraPosition[1] = settings.cameraPresets[index][0][1]

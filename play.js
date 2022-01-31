@@ -3,43 +3,86 @@ import {MapHandler} from "./Engine/Model/MapHandler.js";
 import {SkyBox} from "./Engine/Model/SkyBox.js";
 import {Node} from "./Engine/Model/Node.js";
 
+//# region Variables
 
-// MapHandler instance
+
+/**
+ * mapHandler instance.
+ */
 var mapHandler = new MapHandler();
+
+/**
+ * New map instance.
+ */
 var map;
+
+/**
+ * time variable used for the hedges timings.
+ */
 var time = 0;
-//
-var baseDir;
 
-var gl;
+/**
+ * String containing the name of the base directory of the application.
+ */
+let baseDir;
 
-//Program used to render
-var program;
+/**
+ * WebGLRenderingContext variable instance.
+ */
+let gl;
 
-//VAO
-var vao_arr = []; //data structure containing all the VAO (one for each type of obj)
+/**
+ * WebGL Program variable instance.
+ */
+let program;
 
-//MESHES
-var meshes = [];
+/**
+ * Instances of the Vertex Array Objects in the scene.
+ * @type {*[]}
+ */
+let vao_arr = []; //data structure containing all the VAO (one for each type of obj)
+
+/**
+ * Instances of the meshes of the objects loaded in the scene.
+ * @type {*[]}
+ */
+let meshes = [];
 
 //OBJECTS
+/**
+ * Arrays containing the instances of the objects to be rendered in the scene.
+ * objects: the objects of the interactive part of the scene.
+ * backgroundObjects: the objects of the non-interactive part of the scene.
+ * skyObjects: the clouds rendered in the sky.
+ * hedgeObjects: all the hedges present in the level.
+ */
 var objects = []; // list of objects to be rendered for the playable map
 var backgroundObjects = []; //list of objects to be rendered for the background
 var skyObjects = []; //list of objects to be rendered on the sky
 var hedgeObjects = [];
+
+/**
+ * The instances of the four main nodes of the sceneGraph.
+ */
 var worldSpace;
 var mapSpace;
 var skySpace;
 var backgroundSpace;
 
-//STAGE
-var sceneRoot //the list of objects in which the player moves. all the objects are already initialized
+
 
 //TEXTURES and BUFFERS
+/**
+ * Instances of the textures and relative texture to be used in the application.
+ * @type {*[]}
+ */
 var texture = [];
 var image = [];
 
 //ATTRIBUTES AND UNIFORMS
+/**
+ * Instances of the locations of all the attribute and uniforms in the WebGLProgram.
+ */
 var positionAttributeLocation;
 var uvAttributeLocation;
 var normalAttributeLocation;
@@ -64,15 +107,32 @@ var directLightDirectionHandle;
 
 
 //SKYBOX
+/**
+ * Instance of the SkyBox.
+ * @type {SkyBox}
+ */
 var skyBox = new SkyBox();
 
 
 //Parameters for Game Loop
+/**
+ * variables used to calculate the animations according to the elapsed time since last frame.
+ */
 var lastFrameTime;
 var deltaTime;
+
+/**
+ * The local matrix of the player at spawn.
+ * @type {*[]}
+ */
 var playerStartPosition = [];
 
 //parameter for movement
+/**
+ * variables used for the player movement.
+ * actual and max speed, accelerations.
+ * @type {number}
+ */
 var horizontalSpeed =  0;
 var verticalSpeed = 0;
 var horizontalSpeedCap = settings.horizontalSpeedCap;
@@ -81,25 +141,47 @@ var horizontalAcceleration = 0;
 var verticalAcceleration = 0;
 var gravity = settings.gravity;
 var deceleration = settings.deceleration;
-var jumping = false;
 
-var areHedgesActive = false;
-var hedgesHeight = 0;
+/**
+ * variable used to prevent the player from infinite jumping.
+ * @type {boolean}
+ */
+var jumping = false;
 
 
 //EasterEgg
+/**
+ * Variables used to keep track of the inputs for the easter egg.
+ * @type {number}
+ */
 var easterEgg = 0;
 var keyPressed = false;
+
+/**
+ * variable used to keep track of the active player model when activating the easter egg.
+ * @type {number}
+ */
 var activePlayerModel = 0;
 
 
 //utility
+/**
+ * Matrix used to rotate the player model 180 degrees.
+ */
 var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
+
+/**
+ * variable used to keep track of the player model facing direction.
+ * @type {boolean}
+ */
 var lookinRight = true;
+
+/**
+ * variable used to keep track of the selected camera preset.
+ */
 var cameraPreset;
 
-
-
+// endregion
 
 //#region Init and Main
 
@@ -135,6 +217,9 @@ async function init() {
     main();
 }
 
+/**
+ * This method is used to set all the variables that will be used by the application to work and call the render loop.
+ */
 function main(){
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
@@ -160,6 +245,9 @@ function main(){
 //#endregion
 
 //#region Program Initialization
+/**
+ * This method gets the location of all Attributes and Uniforms of the GLProgram.
+ */
 function getAttributesAndUniformLocation(){
     positionAttributeLocation = gl.getAttribLocation(program, "in_pos");
     normalAttributeLocation = gl.getAttribLocation(program, "in_norm");
@@ -183,6 +271,9 @@ function getAttributesAndUniformLocation(){
     shinessHandle = gl.getUniformLocation(program, "u_shininess");
 }
 
+/**
+ * This function creates a Vertex Array Object for each mesh and saves it.
+ */
 function createVaos(){
     meshes.forEach(mesh => {
         var vao = gl.createVertexArray();
@@ -206,33 +297,18 @@ function createVaos(){
     });
 }
 
+/**
+ * Loads the camera preset passed by the map selection menu.
+ */
 function loadCameraSettings(){
     cameraPreset = parseInt(window.localStorage.getItem("cameraPreset"));
     settings.changeCamera(cameraPreset);
 }
 
+/**
+ * This method creates the scene graph and the related spaces and nodes.
+ */
 function sceneGraphDefinition(){
-    /*worldNode = new Node();
-    var objectNode = new Node();
-    objectNode.localMatrix = utils.MakeScaleMatrix(1,1,1);
-    objectNode.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6]
-    };
-    var objectNode2 = new Node();
-    objectNode2.localMatrix = utils.multiplyMatrices(utils.MakeTranslateMatrix(-20,0,0), utils.MakeScaleMatrix(1,1,1));
-    objectNode2.drawInfo = {
-        programInfo: program,
-        bufferLength: meshes[6].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[6]
-    };
-
-    objectNode.setParent(worldNode);
-    objectNode2.setParent(worldNode)
-    objects.push(objectNode);
-    objects.push(objectNode2);*/
-
     map = mapHandler.loadMap(parseInt(window.localStorage.getItem("playMap")));
     worldSpace = new Node();
     worldSpace.localMatrix = utils.MakeWorld(-100, -60, 0, 0, 0, 0, 1.0);
@@ -283,8 +359,119 @@ function sceneGraphDefinition(){
 }
 //endregion
 
+//# region Rendering
+
+/**
+ * This is the rendering part of the program that will be drawn on the canvas at each frame.
+ * the function also contains the calls for the animations.
+ */
+function drawScene(currentTime){
+    if(!lastFrameTime){
+        lastFrameTime = currentTime;
+    }
+    deltaTime = currentTime - lastFrameTime;
+    time += deltaTime;
+    lastFrameTime = currentTime;
+
+    gl.clearColor(0.85, 0.85, 0.85, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Compute the projection matrix
+    var aspect = gl.canvas.width / gl.canvas.height;
+    var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
+
+    // Compute the camera matrix using look at.
+    var cameraPosition = settings.playCameraPosition;
+    var target = settings.playCameraTarget;
+    var up = settings.playCameraUp;
+    var cameraMatrix = utils.LookAt(cameraPosition, target, up);
+    var viewMatrix = utils.invertMatrix(cameraMatrix);
+
+    var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
+
+    updatePlayerPosition();
+
+    moveClouds();
+
+    animateHedges(time);
+
+    checkCloudsPosition();
+
+    worldSpace.updateWorldMatrix();
+
+    skyBox.InitializeAndDraw();
+
+    objects.forEach(function(object) {
+        initializeAndDrawObject(object, viewProjectionMatrix);
+    });
+
+    skyObjects.forEach(function(object) {
+        initializeAndDrawObject(object, viewProjectionMatrix);
+    });
+
+    hedgeObjects.forEach(function(object) {
+        initializeAndDrawObject(object, viewProjectionMatrix);
+    });
+
+    backgroundObjects.forEach(function(object) {
+        initializeAndDrawObject(object, viewProjectionMatrix);
+    });
+
+    requestAnimationFrame(drawScene);
+
+}
+
+/**
+ * This method gets the object to draw on the canvas and sets all the attributes and uniforms in order
+ * to be properly drawn.
+ * @param object: object to draw.
+ * @param viewProjectionMatrix: the view-projection matrix previously calculated.
+ */
+function initializeAndDrawObject(object, viewProjectionMatrix){
+    gl.useProgram(object.drawInfo.programInfo);
+
+    var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
+    var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+
+    gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
+    gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
+    gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
+
+    gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
+
+    if(object.drawInfo.isColorPresent){
+        gl.uniform1f(isColorPresentBooleanLocation,1.0);
+    }else{
+        gl.uniform1f(isColorPresentBooleanLocation, 0.0);
+    }
+
+    gl.uniform3fv(ambientLightHandle, settings.ambientLight);
+    gl.uniform1f(shinessHandle, settings.shiness);
+    gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
+    gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
+    gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
+    gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
+    gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
+    gl.uniform3fv(directLightColorHandle, settings.directLightColor);
+    gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
+    gl.uniform1i(textureUniformLocation, 0);
+
+    gl.bindVertexArray(object.drawInfo.vertexArray);
+    gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
+}
+
+// endregion
+
 //#region animation
 
+/**
+ * this function uses the speed and acceleration parameters to calculate the player's next position and then
+ * calls the collision function to calculate if the model is going to collide with something. Then reads the result and
+ * determines the next state of the game (e.g. win/loose conditions or simply movement of player).
+ */
 function updatePlayerPosition() {
     let collisions;
     let positionDifference;
@@ -351,13 +538,19 @@ function updatePlayerPosition() {
     animateCamera(positionDifference);
 }
 
-
+/**
+ * this function calculates the animation of each cloud.
+ */
 function moveClouds(){
     skyObjects.forEach(function (object){
         object.localMatrix = utils.multiplyMatrices(object.localMatrix, utils.MakeTranslateMatrix(- settings.cloudSpeed, 0, 0));
     });
 }
 
+/**
+ * checks if the clouds have reached a certain threshold behind the player position and if so repositions them
+ * a certain factor in front of the current player position.
+ */
 function checkCloudsPosition(){
     skyObjects.forEach(function (cloud){
         if(cloud.localMatrix[3] < objects[0].localMatrix[3] - settings.cloudsBackDespawnFactor){
@@ -366,7 +559,9 @@ function checkCloudsPosition(){
     });
 }
 
-
+/**
+ * function used to invert the direction which the player model is facing when changing direction of movement.
+ */
 function invertPlayerModel(){
     var currentPosition = [];
     currentPosition[0] = objects[0].localMatrix[3];
@@ -378,6 +573,10 @@ function invertPlayerModel(){
     objects[0].localMatrix[11] = currentPosition[2];
 }
 
+/**
+ * function that moves the camera according to the player so the player model is always in focus.
+ * @param positionDifference
+ */
 function animateCamera(positionDifference){
     settings.playCameraTarget = [
         objects[0].localMatrix[3],
@@ -389,6 +588,9 @@ function animateCamera(positionDifference){
         settings.playCameraPosition[2] + positionDifference[2]];
 }
 
+/**
+ * function used to deactivate the jumping button while the player is mid-air.
+ */
 function jumpRoutine(){
     if(jumping){
         return;
@@ -397,11 +599,13 @@ function jumpRoutine(){
     verticalAcceleration = settings.jumpHeight;
 }
 
-
+/**
+ * function used to animate the hedges on the ground.
+ * @param Time the elapsed time since the start of the game. Time variable defined as global.
+ */
 function animateHedges(Time){
     hedgeObjects.forEach(function (hedge){
-        let baseY = hedge.gameInfo.y * settings.translateFactor;
-        hedge.localMatrix[7] = baseY;
+        hedge.localMatrix[7] = hedge.gameInfo.y * settings.translateFactor;
         let movement = Math.sin(0.01*Time/settings.activeHedgesTime);
         if(movement<0){
             movement = 0;
@@ -414,105 +618,6 @@ function animateHedges(Time){
 }
 
 //endregion
-
-
-
-function drawScene(currentTime){
-    if(!lastFrameTime){
-        lastFrameTime = currentTime;
-    }
-    deltaTime = currentTime - lastFrameTime;
-    time += deltaTime;
-    lastFrameTime = currentTime;
-
-    gl.clearColor(0.85, 0.85, 0.85, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    // Compute the projection matrix
-    var aspect = gl.canvas.width / gl.canvas.height;
-    var projectionMatrix = utils.MakePerspective(60.0, aspect, 1.0, 2000.0);
-
-    // Compute the camera matrix using look at.
-    var cameraPosition = settings.playCameraPosition;
-    var target = settings.playCameraTarget;
-    var up = settings.playCameraUp;
-    var cameraMatrix = utils.LookAt(cameraPosition, target, up);
-    var viewMatrix = utils.invertMatrix(cameraMatrix);
-
-    var viewProjectionMatrix = utils.multiplyMatrices(projectionMatrix, viewMatrix);
-
-    updatePlayerPosition();
-
-    moveClouds();
-
-    animateHedges(time);
-
-    if(areHedgesActive){
-        animateHedges();
-    }
-
-    checkCloudsPosition();
-
-    worldSpace.updateWorldMatrix();
-
-    skyBox.InitializeAndDraw();
-
-    objects.forEach(function(object) {
-        initializeAndDrawObject(object, viewProjectionMatrix);
-    });
-
-    skyObjects.forEach(function(object) {
-        initializeAndDrawObject(object, viewProjectionMatrix);
-    });
-
-    hedgeObjects.forEach(function(object) {
-        initializeAndDrawObject(object, viewProjectionMatrix);
-    });
-
-    backgroundObjects.forEach(function(object) {
-        initializeAndDrawObject(object, viewProjectionMatrix);
-    });
-
-    requestAnimationFrame(drawScene);
-
-}
-
-function initializeAndDrawObject(object, viewProjectionMatrix){
-    gl.useProgram(object.drawInfo.programInfo);
-
-    var projectionMatrix = utils.multiplyMatrices(viewProjectionMatrix, object.worldMatrix);
-    var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
-
-    gl.uniformMatrix4fv(wvpMatrixLocation, false, utils.transposeMatrix(projectionMatrix));
-    gl.uniformMatrix4fv(normalMatrixLocation, false, utils.transposeMatrix(normalMatrix));
-    gl.uniformMatrix4fv(positionMatrixLocation, false, utils.transposeMatrix(object.worldMatrix));
-
-    gl.uniform4f(colorUniformLocation, object.drawInfo.color[0], object.drawInfo.color[1], object.drawInfo.color[2], object.drawInfo.color[3]);
-
-    if(object.drawInfo.isColorPresent){
-        gl.uniform1f(isColorPresentBooleanLocation,1.0);
-    }else{
-        gl.uniform1f(isColorPresentBooleanLocation, 0.0);
-    }
-
-    gl.uniform3fv(ambientLightHandle, settings.ambientLight);
-    gl.uniform1f(shinessHandle, settings.shiness);
-    gl.uniform3fv(cameraPositionHandle, settings.cameraPosition);
-    gl.uniform3fv(pointLightPositionHandle, settings.pointLightPosition);
-    gl.uniform3fv(pointLightColorHandle, settings.pointLightColor);
-    gl.uniform1f(pointLightTargetHandle, settings.pointLightTarget);
-    gl.uniform1f(pointLightDecayHandle, settings.pointLightDecay);
-    gl.uniform3fv(directLightColorHandle, settings.directLightColor);
-    gl.uniform3fv(directLightDirectionHandle, settings.directLightDir);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.texture);
-    gl.uniform1i(textureUniformLocation, 0);
-
-    gl.bindVertexArray(object.drawInfo.vertexArray);
-    gl.drawElements(gl.TRIANGLES, object.drawInfo.bufferLength, gl.UNSIGNED_SHORT, 0 );
-}
-
 
 //#region Obj Load and Textures
 
@@ -536,7 +641,10 @@ async function loadObjects(file) {
     }
 }
 
-function setupTextures() { //TODO modificare per caricare le textures sugli oggetti che non hanno terrain
+/**
+ * This method loads all the textures in the corresponding variable ready to be used.
+ */
+function setupTextures() {
     texture[0] = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture[0]);
@@ -575,6 +683,10 @@ function setupTextures() { //TODO modificare per caricare le textures sugli ogge
 //endregion
 
 //#region Canvas
+
+/**
+ * This method gets the canvas element in the HTML page and prepares its interaction with the WebGL context.
+ */
 function getCanvas() {
     var canvas = document.getElementById("canvas");
 
@@ -597,6 +709,17 @@ function getCanvas() {
 
 //endregion
 
+//#region Object Creation functions
+
+/**
+ * This function creates a new node to add to the scene. This function is used to create the playable
+ * elements of the map, such as SquareIslands, CylinderIslands, Bricks and Flagpoles.
+ * @param x: the x position of the new object.
+ * @param y: the y position of the new object.
+ * @param type: the mesh type of the new object.
+ * @returns {Node}: the node object created.
+ * @constructor
+ */
 function CreateNode(x, y, type){
     if(type === 1){
         CreateHedgeNode(x,y);
@@ -645,7 +768,12 @@ function CreateNode(x, y, type){
     objects.push(node);
 }
 
-
+/**
+ * This method adds a hedge to the scene.
+ * @param x: the x position of the new hedge.
+ * @param y: the y position of the new hedge.
+ * @constructor
+ */
 function CreateHedgeNode(x, y){
     var z = 0;
     var translateFactor = settings.translateFactor;
@@ -730,7 +858,13 @@ function setClouds(){
 
 }
 
-/** create the background nodes */
+/**
+ * This method adds a decoration node to the map space.
+ * @param x: the x position of the new backgroundObject.
+ * @param y: the y position of the new backgroundObject.
+ * @param type: the mesh type of the new backgroundObject.
+ * @constructor
+ */
 function CreateDecorationNode(x, y, type){
     var z = -settings.translateFactor;
     var translateFactor = settings.translateFactor;
@@ -765,7 +899,13 @@ function CreateDecorationNode(x, y, type){
     backgroundObjects.push(node);
 }
 
+//endregion
 
+//# region Event Listeners
+
+/**
+ * enables the GUI listeners
+ */
 function setGuiListeners(){
 
     // UI Listeners
@@ -785,23 +925,48 @@ function setGuiListeners(){
     document.addEventListener("keyup", onKeyUp, false);
 }
 
+//endregion
+
 //# region UI events
-
-function toggleGameOver(status){
-    let gameOverMenu = document.getElementById("game_over_menu");
-
-    gameOverMenu.hidden = status;
-}
-
+/**
+ * function used to enable end disable the win and loose screens.
+ * @param status boolean that is true if the panel needs to be hidden or false if the panel needs to be visible.
+ * @param screenID the name of the panel to toggle.
+ */
 function toggleScreen(status, screenID){
     let panel = document.getElementById(screenID);
     panel.hidden = status;
+}
+
+/**
+ * Toggles between window mode and full screen.
+ */
+function toggleFullScreen() {
+    var canvas = document.getElementById("canvas");
+    if(!document.fullscreenElement) {
+        let outcome = canvas.requestFullscreen();
+        if(!outcome){
+            window.alert("Impossible to change to Full Screen");
+        }
+    }
+    else {
+        if(document.exitFullscreen) {
+            let outcome = document.exitFullscreen();
+            if(!outcome){
+                window.alert("Impossible to exit to Full Screen");
+            }
+        }
+    }
 }
 
 //endregion
 
 //#region Keyboard events
 
+/**
+ * Function to listen to the key pressed event.
+ * @param event
+ */
 function onKeyDown(event){
     switch (event.keyCode){
         case 87: //W
@@ -867,6 +1032,10 @@ function onKeyDown(event){
     }
 }
 
+/**
+ * function to listen to the key released event.
+ * @param event
+ */
 function onKeyUp(event){
     switch (event.keyCode){
         case 87: //W
@@ -923,10 +1092,15 @@ function onKeyUp(event){
     }
 }
 
+//endregion
 
 //#region EasterEgg
 
 //For each letter checks if the sequence is correct, if not resets the counter
+/**
+ * function to check if the easter egg keys are pressed in the right order.
+ * @param letterNumber the number corresponding to the letter pressed.
+ */
 function checkEasterEgg(letterNumber){
     if(easterEgg === letterNumber && keyPressed === false){
         easterEgg++;
@@ -941,6 +1115,9 @@ function checkEasterEgg(letterNumber){
 }
 
 //if the sequence for the easter egg is complete swaps the player model
+/**
+ * if the easter egg sequence is correctly completed this function swaps the player ghost model with the easter egg one.
+ */
 function swapPlayerModel(){
     if(activePlayerModel === 0){
         objects[0].drawInfo.bufferLength = meshes[7].mesh.indexBuffer.numItems;
@@ -957,6 +1134,10 @@ function swapPlayerModel(){
     easterEgg = 0;
 }
 
+/**
+ * if the easter egg sequence is correctly completed this function swaps the play screen song with one
+ * between two (randomly selected) easter egg songs.
+ */
 function swapMusic(){
     if(activePlayerModel === 1){
         let prob = Math.random();
@@ -968,13 +1149,16 @@ function swapMusic(){
 }
 //endregion
 
-//endregion
-
 //# region gameManager
 
-
+/**
+ * variable that contains the current player lives.
+ */
 var lives;
 
+/**
+ * function that resets the game parameters and switches off the win or loose screens.
+ */
 function startGame(){
     //reset parameters
     lives = settings.startingLives;
@@ -985,7 +1169,9 @@ function startGame(){
     toggleScreen(true, "win_menu");
 }
 
-
+/**
+ * Stops the player from moving and enables the Lost screen.
+ */
 function deathScreen(){
     horizontalSpeed = 0;
     verticalSpeed = 0;
@@ -996,7 +1182,9 @@ function deathScreen(){
     toggleScreen(false, "game_over_menu");
 }
 
-
+/**
+ * Stops the player from moving and enables the Won screen.
+ */
 function winScreen(){
     horizontalSpeed = 0;
     verticalSpeed = 0;
@@ -1007,8 +1195,11 @@ function winScreen(){
     toggleScreen(false, "win_menu");
 }
 
-
-
+/**
+ * for each death checks if there are still lives remaining and in case of falling out of the map
+ * repositions the player to the spawn position.
+ * @constructor
+ */
 function DeathHandler(){
     lives --;
     if(lives === 0){
@@ -1023,6 +1214,10 @@ function DeathHandler(){
     verticalAcceleration = 0;
 }
 
+/**
+ * repositions the player to a passed position.
+ * @param newPosition the position which the player is going to be placed.
+ */
 function repositionPlayer(newPosition){
     objects[0].localMatrix = newPosition;
     if(!lookinRight){
@@ -1031,27 +1226,5 @@ function repositionPlayer(newPosition){
 }
 
 //endregion
-
-
-/**
- * Toggles between window mode and full screen.
- */
-function toggleFullScreen() {
-    var canvas = document.getElementById("canvas");
-    if(!document.fullscreenElement) {
-        let outcome = canvas.requestFullscreen();
-        if(!outcome){
-            window.alert("Impossible to change to Full Screen");
-        }
-    }
-    else {
-        if(document.exitFullscreen) {
-            let outcome = document.exitFullscreen();
-            if(!outcome){
-                window.alert("Impossible to exit to Full Screen");
-            }
-        }
-    }
-}
 
 window.onload = init();
