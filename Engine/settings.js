@@ -10,7 +10,7 @@ var settings = {
     playerColliderY: 5,
     blocksColliderX: 8.5,
     blocksColliderY: 17,
-    hedgesColliderX: 10,
+    hedgesColliderX: 8,
     hedgesColliderY: 10,
 
     /**
@@ -66,11 +66,11 @@ var settings = {
     /**
      * Player movement values
      */
-    horizontalSpeedCap: 5,
-    verticalSpeedCap: 5,
-    gravity: -0.1,
+    horizontalSpeedCap: 3,
+    verticalSpeedCap: 3,
+    gravity: -0.5,
     deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
-    jumpHeight: 3,
+    jumpHeight: 4.8,
 
     /**
      * Game parameters

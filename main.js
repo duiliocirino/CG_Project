@@ -514,12 +514,19 @@ function objectDrawing(objects, viewProjectionMatrix){
     });
 }
 
+/**
+ * this function calculates the animation of each cloud.
+ */
 function moveClouds(){
     skyObjects.forEach(function (object){
         object.localMatrix = utils.multiplyMatrices(object.localMatrix, utils.MakeTranslateMatrix(- settings.cloudSpeed, 0, 0));
     });
 }
 
+/**
+ * checks if the clouds have reached a certain threshold behind the player position and if so repositions them
+ * a certain factor in front of the current player position.
+ */
 function checkCloudsPosition(){
     skyObjects.forEach(function (cloud){
         if(cloud.localMatrix[3] < objects[0].localMatrix[3] - settings.cloudsBackDespawnFactor){
