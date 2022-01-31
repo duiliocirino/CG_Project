@@ -151,16 +151,13 @@ button:focus {
 }
 
 .gui-container {
-    font-family: Arial;
     position: absolute;
     z-index: 1;
     right: 20px;
     top: 30px;
-    border-style: dotted;
-    border-color: rgba(71, 72, 71, 0.64);
+    margin: 8px;
     overflow: auto;
-    padding-bottom: 5px;
-    padding-top: 5px;
+    padding: 5px;
     background-color: rgba(181, 174, 174, 0.66);
     text-shadow: -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, 1px 1px 0 #FFF;
     border-radius: 15px;
