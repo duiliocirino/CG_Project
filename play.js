@@ -177,6 +177,11 @@ var rotateYaxismatrix = utils.MakeRotateYMatrix(180);
 var lookinRight = true;
 
 /**
+ * variable used to keep track if the player has been repositioned
+ */
+var playerRepositioned = false;
+
+/**
  * variable used to keep track of the selected camera preset.
  */
 var cameraPreset;
@@ -515,27 +520,31 @@ function updatePlayerPosition() {
     if(collisions.detected){
         if(collisions.isHedge){
             DeathHandler();
-        }
-        if(collisions.victory){
+        }else if(collisions.victory){
             winScreen();
+        }else{
+            jumping = false;
+            horizontalSpeed *= collisions.speedMultiplier[0];
+            horizontalAcceleration *= collisions.speedMultiplier[0];
+            verticalSpeed *= collisions.speedMultiplier[1];
+            verticalAcceleration *= collisions.speedMultiplier[1];
         }
-        jumping = false;
-        horizontalSpeed *= collisions.speedMultiplier[0];
-        horizontalAcceleration *= collisions.speedMultiplier[0];
-        verticalSpeed *= collisions.speedMultiplier[1];
-        verticalAcceleration *= collisions.speedMultiplier[1];
     }
 
-    positionDifference = [
-        collisions.position[3] - objects[0].localMatrix[3],
-        collisions.position[7] - objects[0].localMatrix[7],
-        collisions.position[11] - objects[0].localMatrix[11]];
-    objects[0].localMatrix = collisions.position;
-    if(collisions.position[3] < settings.horizontalBound || collisions.position[7] < settings.verticalBound){
-        DeathHandler();
+    if(!playerRepositioned){
+        positionDifference = [
+            collisions.position[3] - objects[0].localMatrix[3],
+            collisions.position[7] - objects[0].localMatrix[7],
+            collisions.position[11] - objects[0].localMatrix[11]];
+        objects[0].localMatrix = collisions.position;
+        if(collisions.position[3] < settings.horizontalBound || collisions.position[7] < settings.verticalBound){
+            DeathHandler();
+        }
+        animateCamera(positionDifference);
+    }else{
+        playerRepositioned = false;
     }
 
-    animateCamera(positionDifference);
 }
 
 /**
@@ -1223,6 +1232,7 @@ function repositionPlayer(newPosition){
     if(!lookinRight){
         invertPlayerModel()
     }
+    playerRepositioned = true;
 }
 
 //endregion
