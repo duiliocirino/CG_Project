@@ -41,7 +41,7 @@ export class Map{
      checkIfOtherBlockIsPresent(x, y){
         let bool = false;
         this.playableObjects.forEach(function (block){
-            if(block.position[0] === x && block.position[1] === y)
+            if(block.position[0] === x && block.position[1] === y && !(block.type === 1 || block.type === 9))
                 bool = true;
         });
         return bool;
