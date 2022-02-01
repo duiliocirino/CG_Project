@@ -858,7 +858,8 @@ function CreateDecorationNode(x, y, type){
     node.drawInfo = {
         programInfo: program,
         bufferLength: meshes[type].mesh.indexBuffer.numItems,
-        vertexArray: vao_arr[type]
+        vertexArray: vao_arr[type],
+        texture: texture[0]
     }
     if(type === 0){
         node.drawInfo.color = settings.bricksColor;
@@ -868,7 +869,7 @@ function CreateDecorationNode(x, y, type){
         node.drawInfo.isColorPresent = false;
     }
     node.setParent(mapSpace);
-    map.backgroundObjects.push(new Block(x, y, type));
+    //map.backgroundObjects.push(new Block(x, y, type));
     backgroundObjects.push(node);
 }
 //endregion
