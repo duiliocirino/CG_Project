@@ -1123,9 +1123,10 @@ let lives;
 function startGame(){
     //reset parameters
     lives = settings.startingLives;
-    objects[0].position = playerStartPosition;
     horizontalSpeedCap = settings.horizontalSpeedCap;
     verticalSpeedCap = settings.verticalSpeedCap;
+    repositionPlayer(playerStartPosition);
+    settings.changeCamera(cameraPreset);
     toggleScreen(true, "game_over_menu");
     toggleScreen(true, "win_menu");
 }

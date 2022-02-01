@@ -68,9 +68,9 @@ var settings = {
      */
     horizontalSpeedCap: 3,
     verticalSpeedCap: 3,
-    gravity: -0.5,
+    gravity: -0.25, //old -0.5
     deceleration: 0.7, //deceleration = 1 means the speed is linear. deceleration = 0 there is no acceleration.
-    jumpHeight: 4.8,
+    jumpHeight: 5.2, //old 4.8
 
     /**
      * Game parameters
@@ -136,7 +136,7 @@ var settings = {
     directLightTheta: 30,
     directLightPhi: 40,
     directLightColor: [0.8, 0.8, 0.6],
-    directLightDir: [null, null, null],
+    directLightDir: [0.0, 0.0, 0.0],
     //ambient
     ambientLight: [0.2, 0.2, 0.2],
     //specular
