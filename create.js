@@ -702,15 +702,15 @@ const gui_settings = {
     'cameraY': new settingObj(300, false, settings.cameraPosition[1]),
     'cameraZ': new settingObj(300, false, settings.cameraPosition[2]),
     'fieldOfView': new settingObj(180, true, settings.fieldOfView),
-    'posX': new settingObj(8, false, settings.pointLightPosition[0]),
-    'posY': new settingObj(8, false, settings.pointLightPosition[1]),
-    'posZ': new settingObj(8, false, settings.pointLightPosition[2]),
-    'lightDecay': new settingObj(5, true, settings.pointLightDecay),
+    'posX': new settingObj(45, false, settings.pointLightPosition[0]),
+    'posY': new settingObj(45, false, settings.pointLightPosition[1]),
+    'posZ': new settingObj(45, false, settings.pointLightPosition[2]),
+    'lightDecay': new settingObj(15, true, settings.pointLightDecay),
     'lightTarget': new settingObj(20, true, settings.pointLightTarget),
     'dirTheta': new settingObj(180, true, settings.directLightTheta),
     'dirPhi': new settingObj(180, false, settings.directLightPhi),
     'ambientLight': new settingObj(1, true, settings.ambientLight[0]),
-    'shininess': new settingObj(200, true, settings.shiness),
+    'shininess': new settingObj(500, true, settings.shiness),
 }
 
 function onSliderChange(slider_value, id) {
